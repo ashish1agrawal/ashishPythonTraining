@@ -1,0 +1,310 @@
+---
+title: "Regression Concepts Using R"
+author: "Kumar Rahul"
+output: word_document
+---
+
+## In this exercise, we will use the patient data and understand the following:
+
+> 1. Importing the datset from a csv file
+2. Understanding the strucutre and summary of the data
+3. Typecasting a variable to a proper data type
+4. Creating derived variables and interaction variables
+5. Analyzing the corelation amongst variables
+6. Releveling the factor variable and understand its impact
+7. Building the regression model using caret package
+8. Writing the model equation and interpreting the model summary
+9. Analayzing the statistics to acertain the validity of the model
+
+There are bugs/missing code in the entire exercise. The participants are expected to work upon them.
+***
+***
+
+## Here are some useful links:
+
+> 1. Refer [link](http://www.ats.ucla.edu/stat/r/library/contrast_coding.htm) to know more about different ways of dummy variable coding
+2. [Read](http://www.ats.ucla.edu/stat/mult_pkg/faq/general/dummy.htm) about interaction variable coding
+3. Refer [link](http://www.statmethods.net/input/valuelabels.html) to know about adding lables to factors
+4. Refer [link](http://stackoverflow.com/questions/2342472/recode-relevel-data-frame-factors-with-different-levels) to relevel factor variables
+5. [Read](http://stats.stackexchange.com/questions/88485/variable-is-significant-through-stepwise-regression-but-not-in-final-models-sum) about the issues in stepwise regression
+6. The issues arising out of multi-colinearity is discussed  [here](http://blog.minitab.com/blog/understanding-statistics/handling-multicollinearity-in-regression-analysis) or  [here](https://onlinecourses.science.psu.edu/stat501/node/343)
+7. The residual diagonstic can be interpreted from [here](http://data.library.virginia.edu/diagnostic-plots/)
+8. [Read](https://onlinecourses.science.psu.edu/stat501/node/337) to understand the distinction between **outliers** and **influential cases**
+9. [Change](http://stackoverflow.com/questions/16819956/invalid-factor-level-na-generated) NAs to a new label
+10. Issues with rJava installation may get resolved by following [link](https://www.r-statistics.com/2012/08/how-to-load-the-rjava-package-after-the-error-java_home-cannot-be-determined-from-the-registry/) or by [link](http://stackoverflow.com/questions/27661325/unable-to-load-rjava-on-r)
+
+***
+
+# Code starts here
+
+We are going to use below mentioned libraries for demonstrating logistic regression:
+
+```{r libraries, echo=TRUE, message=FALSE, warning=FALSE}
+library(stats)    #for regression
+library(caret)    #for data partition
+library(car)      #for VIF
+library(sandwich) #for variance, covariance matrix
+```
+
+
+## Data Import and Manipulation
+
+### 1. Importing a data set 
+
+_Give the correct path to the data_
+```{r readData, echo=TRUE,tidy=TRUE}
+raw.data <- read.csv("/Users/Rahul/Documents/Datasets/Mission Hospital-Case Data.csv", header = TRUE,sep = ",",na.strings = c(""," ", "NA"))
+raw.data <- raw.data[,c(-58:-62)]
+```
+
+Note that `echo = FALSE` parameter prevents printing the R code that generated the
+plot.
+
+### 2a. Structure and Summary of the dataset
+There are 175 NA values in Past Medical History Code. However, rather than treating these as missing values, it represents that there is no past medical history for these patients. These NA may be marked as "None". But while doing so, the code will give an error as we are trying to add a new level to factor variable (**raw.data$Past.MEDICAL.HISTORY.CODE**). In order to add a new level, first we will need to typecast this variable as a character variable, add a new level and then re-typecast them as Factor variable.
+
+```{r summarizeData, echo=TRUE,tidy=TRUE}
+str(raw.data)
+summary(raw.data)
+
+raw.data$PAST.MEDICAL.HISTORY.CODE[raw.data$PAST.MEDICAL.HISTORY.CODE == "Hypertension1"] <- "hypertension1"
+
+raw.data$PAST.MEDICAL.HISTORY.CODE <- as.character(raw.data$PAST.MEDICAL.HISTORY.CODE)
+
+raw.data$PAST.MEDICAL.HISTORY.CODE[is.na(raw.data$PAST.MEDICAL.HISTORY.CODE)] <- "None"
+
+raw.data$PAST.MEDICAL.HISTORY.CODE <- as.factor(raw.data$PAST.MEDICAL.HISTORY.CODE)
+```
+
+Create a new data frame and store the raw data copy. This is being done to have a copy of the raw data intact for further manipulation if needed.
+
+```{r createDataCopy, echo=TRUE,tidy=TRUE}
+new.data <- raw.data[,c(-1,-4,-5,-7,-9:-21,-23,-25,-31:-36,-41,-42,-44,-46,-48,-56)]
+new.data <- na.omit(new.data) # listwise deletion of missing
+```
+
+### 3a. Correlation among Variables
+
+From the numeric attribute in the data, it will of interest to analyze the variables which are corelated to each other. High corelation amongst variable may result in the issue of **multi-colinearity** in the model. 
+
+```{r corMatrix, echo=TRUE,tidy=TRUE}
+correlationMatrix <- cor(new.data[,c(1,7:10,12:14,18:24,26)])
+print(correlationMatrix)
+# find attributes that are highly corrected (ideally >0.7)
+highlyCorrelated <- findCorrelation(correlationMatrix, cutoff = 0.7, names = TRUE)
+print(highlyCorrelated)
+```
+
+### 3b. Derived variables
+Deriving BMI to drop of Weight and Height as variables. Both of them where highly corelated to age. Droping Cretanine as a variable as it is highly corleated to age.
+
+```{r}
+new.data$BMI <- #missing code to compute BMI
+new.data$I_COST.OF.IMPLANT <- #missing code to create interaction between IMPLANT.USED..Y.N. and COST.OF.IMPLANT
+filter.data <- new.data[,c(-5:-6)]
+```
+
+### 3c. Relevel
+
+By default, the base category/reference category selected is ordered alphabetically. In this code chunk we are just changing the base category for PAST.MEDICAL.HISTORY.CODE variable.
+
+The base category can be releveled using the function **relevel()**.
+
+```{r relevelCategory, echo=TRUE,tidy=TRUE}
+filter.data$PAST.MEDICAL.HISTORY.CODE <- relevel(filter.data$PAST.MEDICAL.HISTORY.CODE, ref = "None")
+```
+
+
+### 4. Create train and test datase vct
+
+#### Reserve 80% for **_training_** and 20% of **_test_**
+
+_Correct the error in the below code chunk_
+```{r createDataPartition, echo=TRUE,tidy=TRUE}
+set.seed(2341)
+trainIndex <- createDataPartition(filter.data$TOTAL.COST.TO.HOSPITAL, p = 0.80, list = FALSE)
+data.train <- filter.data[trainIndex,]
+data.test <- filter.data[trainIndex,]
+```
+
+Transformation of variables may be needed to validate the model assumptions.
+```{r}
+#missing code
+```
+
+We can pull the specific attribute needed to build the model in another data frame. This agian is more of a hygine practice to not touch the **train** and **test** data set directly.
+
+_Correct the error in the below code chunk_
+```{r variableUsedinTraining, echo=TRUE,tidy=TRUE}
+reg.train.data <- as.data.frame(data.train[,c("AGE", 
+                                             "HR.PULSE", 
+                                             "BP..HIGH",
+                                             "RR",
+                                             "HB",
+                                             "UREA",
+                                             #"TOTAL.LENGTH.OF.STAY",
+                                             "BMI", 
+                                             #"COST.OF.IMPLANT",
+                                             #"IMPLANT.USED..Y.N.",
+                                             "I_COST.OF.IMPLANT",
+                                             "GENDER", 
+                                             "MARIATL.STATUS",
+                                             "KEY.COMPLAINTS..CODE",
+                                             "PAST.MEDICAL.HISTORY.CODE",
+                                             "MODE.OF.ARRIVAL",
+                                             #"STATE.AT.THE.TIME.OF.ARRIVAL",
+                                             "TYPE.OF.ADMSN",
+                                             "TOTAL.COST.TO.HOSPITAL"
+                                             #"Log.Cost.Treatment"
+)])
+```
+
+_Correct the error in the below code chunk_
+```{r variableUsedinTesting, echo=TRUE, tidy=TRUE}
+reg.test.data <- as.data.frame(data.test[,c("AGE",
+                                             "HR.PULSE",
+                                             "BP..HIGH",
+                                             "RR",
+                                             "HB",
+                                             "UREA",
+                                             #"TOTAL.LENGTH.OF.STAY",
+                                             "BMI",
+                                             #"COST.OF.IMPLANT",
+                                             #"IMPLANT.USED..Y.N.",
+                                             "I_COST.OF.IMPLANT",
+                                             "GENDER", 
+                                             "MARITAL.STATUS",
+                                             "KEY.COMPLAINTS..CODE",
+                                             "PAST.MEDICAL.HISTORY.CODE",
+                                             "MODE.OF.ARRIVAL",
+                                             #"STATE.AT.THE.TIME.OF.ARRIVAL",
+                                             "TYPE.OF.ADMSN",
+                                             "TOTAL.COST.TO.HOSPITAL"
+                                             #"Log.Cost.Treatment"
+)])
+```
+
+***
+
+## Model building: Using the **lm()** function
+
+The actual model building starts now. Note that we are demonstrating the strategy of building a step wise model (forward selection and backward elimination)  using the **lm()** function
+
+```{r buildModel, echo=TRUE, message=FALSE, warning=FALSE, tidy=TRUE}
+#Null Model
+noModel <- lm(TOTAL.COST.TO.HOSPITAL ~ 1,data = reg.train.data)
+
+#Full Model
+RegModelFull = lm(TOTAL.COST.TO.HOSPITAL ~ ., data = reg.train.data)
+
+#Stepwise - Forward selection backward elimination
+RegModelStepwise <- step(noModel, list(lower = formula(noModel),
+                                         upper = formula(RegModelFull)),
+                           direction = "both",trace = 0)
+```
+
+
+***
+
+## Model Evaluation
+
+### 1. Model summary of Train Data
+
+Checking the if the model satisfies the assumpations of Linear Regression Model. Note that this evaluation is on training data.
+
+The model summary gives the equation of the model as well as helps test the assumption that beta coeffiecents are not statically zero.
+```{r modelStats,tidy=TRUE}
+summary(RegModelStepwise)
+```
+
+
+You may ignore the below code chunk. This code is more to understand how the standard error of beta coefficients are calculated. **vcov()** is used to compute the variance covariance matrix of the fitted object. **cov2cor()** is used to scale the covariance matrix into the correponding correlation matrix. In the matrix generated out of the below code chunk:
+
+> 1. The diagonal values are the variance of the variable to itself. 
+2. The square root of the diagonal values gives the standard error associated with the estimates. 
+3. The non diagonal elements are the covariance of the estimated  
+
+```{r, echo=TRUE}
+vcov(RegModelStepwise)
+sqrt(diag(vcov(RegModelStepwise)))
+#cov2cor(vcov(RegModelStepwise))
+```
+
+### 2. The residual analysis
+
+The error term diagnostic is critical to understanding the behaviour of linear regression models. The two critical assumptions of linear regression are:
+
+>1. Error term should be normally distributed
+2. Error term should have constant variance (**homoscedasticity**)
+
+The **plot()** function when used on the regression object model gives us four different plots. The two important one to analyze there are:
+
+1. Normal Q-Q
+2. Scale-Location
+
+#####1. Normal Q_Q plot
+This plot shows if the error terms are normally distributed. In case, of normal distribution, the dots should appear close to the straight line with not much of a deviation.
+
+#####2. Scale-Location
+Also known as spread location plot, it shows if the residuals are equally spread along the range of predictors. It is desirable to see a horizontal straight line with with randomly spread points.
+
+**The other two plots are:**
+
+#####3. Residual vs. Fitted
+There could be a non linear relationship between predictor variable (Xs) and the outcome variable (Y). This non linear relationship can show up in this plot which may suggest that the model is mis-specified. It is desirable to see a horizontal straight line with with randomly spread points.
+
+#####4. Residual vs. Leverage
+The regression line can be influenced by outliers (extreme values in Y) or by data points with high leverage (extreme values in X). Not all the extreme values are influential cases in regression analysis.
+
+Even if data has extreme values, it may not be influential to determine the regression line. On the flip side, some cases could be very influential even if they do not seem to be an outlier. Influential cases are identified by cook's distance. In the plot, look for for outlying values at the upper right corner or at the lower right corner (cases outside of a dashed line i.e. Cook’s distance). 
+
+```{r variableDeclaration, echo=TRUE}
+plot(RegModelStepwise)
+
+#hist(residuals(RegModelStepwise), main = "Residuals", col = 'blue')
+```
+
+##### Visual inspection to check for heteroscedasticity in error terms
+
+You may ignore the below code chuck. This is an elaboration of the scale-location plot obtained before.
+
+```{r modelOptimalCutOff, echo=FALSE,tidy=TRUE}
+plot(predict(RegModelStepwise), residuals(RegModelStepwise), main = "Scale-Location")
+#yhat <- RegModelStepwise$fitted.values
+#plot(yhat, res) #same plot as above
+```
+
+##### Multi-colinearity
+
+Variance Inflation Factor (VIF) is a measure of how much the variance of the estimated regrression coeffiecients are inflated as compared to when the predicator variable are not linearly related. 
+
+> VIF = 1 : Not Correlated
+> 1<VIF<5 : Moderately Correlated
+> 5<VIF<=10: Highly Correlated
+
+_The square root of the VIF tells you how much larger the standard error is, compared with what it would be if that variable were uncorrelated with the other predictor variables in the model._
+
+Say, if the square root of the VIF is 2.5; this means that the standard error for the coefficient of that predictor variable is 2.5 times as large as it would be if the predictor variable were uncorrelated with the other predictor variables
+
+Generally the issue of multi-colinearity wil not arise, if the corelation amongst variable has been analyzed before model building and the one amongst the corelated variable has been dropped from the data.
+```{r}
+vif(RegModelStepwise)
+```
+
+### 3. Model Validation on the Test Data
+
+The **predict** function is used to get the predicted response on the new dataset. 
+You may get an error message if the test data has got any new levels which was not there in the training set. This generally happens when the data has categorical variable with multiple levels.
+```{r modelValidation, echo=TRUE,tidy=TRUE}
+RegTestPrediction = predict(RegModelStepwise, reg.test.data, 
+                            interval = "confidence",
+                            level = 0.95,
+                            type = "response")
+print(RegTestPrediction)
+```
+
+
+#### End of Document
+
+***
+***

@@ -1,0 +1,236 @@
+---
+author: Kumar Rahul
+date: 9 September 2016
+output: word_document
+title: Logistic Regression using Caret Package
+---
+
+## In this exercise, we will use the HR dataset and understand the following using caret package:
+
+> 1. Building the naive bayes model
+2. What is marked as the positive class by the model when using caret package
+3. Writing the model equation and interpreting the model summary
+4. Creating the Confusion Matrix and ROC plot on train data
+5. Creating the Confusion Matrix and ROC plot on test data
+
+There are bugs/missing code in the entire exercise. The participants are expected to work upon them.
+
+***
+
+# Code starts here
+We are going to use below mentioned libraries for demonstrating logistic regression:
+
+```{r}
+#install.packages("klaR", "/Users/Rahul/anaconda3/lib/R/library")
+```
+
+```{r libraries, echo=TRUE, message=FALSE, warning=FALSE}
+library(caret)    #for data partition. Model building
+library(ROCR)     #for ROC plot (other way)
+```
+
+## Data Import and Manipulation
+
+### 1. Importing a data set
+
+_Give the correct path to the data_
+
+```{r readData, echo=TRUE,tidy=TRUE}
+raw_df <- read.csv("/Users/Rahul/Documents/Datasets/IMB533_HR_Data_No_Missing_Value.csv", header = TRUE,sep = ",",na.strings = c(""," ", "NA"))
+
+raw_df[1779,
+      ]
+```
+
+Note that `echo = FALSE` parameter prevents printing the R code that generated the
+plot.
+
+### 2. Structure and Summary of the dataset
+
+```{r summarizeData, echo=TRUE,tidy=TRUE}
+str(raw_df)
+summary(raw_df)
+```
+
+Create a new data frame and store the raw data copy. This is being done to have a copy of the raw data intact for further manipulation if needed.
+
+```{r createDataCopy, echo=TRUE,tidy=TRUE}
+filter_df <- na.omit(raw_df) # listwise deletion of missing
+```
+
+### 3. Create train and test dataset
+
+#### Reserve 80% for **_training_** and 20% of **_test_**
+
+_Correct the error in the below code chunk_
+
+```{r createDataPartition, echo=TRUE,tidy=TRUE}
+set.seed(2341)
+trainIndex <- createDataPartition(filter_df$Status, p = 0.80, list = FALSE)
+train_df <- filter_df[trainIndex,]
+test_df <- filter_df[-trainIndex,]
+```
+
+We can pull the specific attribute needed to build the model is another data frame. This agian is more of a hygine practice to not touch the **train** and **test** data set directly.
+
+```{r variableUsedinTraining, echo=TRUE,tidy=TRUE}
+naive_train_df <- as.data.frame(train_df[,c("DOJ.Extended",
+                                             "Duration.to.accept.offer",
+                                             #"Notice.period",
+                                             "Offered.band",
+                                             #"Percent.difference.CTC",
+                                             #"Joining.Bonus",
+                                             #"Gender",
+                                             #"Candidate.Source",
+                                             #"Rex.in.Yrs",
+                                             "LOB",
+                                             #"Location",
+                                             #"Age",
+                                             "Status"
+)])
+```
+
+_Correct the error in the below code chunk_
+
+```{r variableUsedinTesting, echo=TRUE, tidy=TRUE}
+naive_test_df <- as.data.frame(test_df[,c("DOJ.Extended",
+                                           "Duration.to.accept.offer",
+                                           #"Notice.period",
+                                           "Offered.band",
+                                           #"Percent.difference.CTC",
+                                           #"Joining.Bonus",
+                                           #"Gender",
+                                           #"Candidate.Source",
+                                           #"Rex.in.Yrs",
+                                           "LOB",
+                                           #"Location",
+                                           #"Age",
+                                           "Status"
+)])
+```
+
+***
+
+## Model Building: Using the **caret()** package
+There are a number of models which can be built using caret package. To get the names of all the models possible.
+
+```{r caretModelInfo, echo=TRUE}
+names(getModelInfo())
+```
+
+To get the info on specific model:
+
+```{r caretModelType, echo=TRUE}
+getModelInfo()$glm$type
+```
+
+The below chunk of code is standarized way of building model using caret package. Setting in the control parameters for the model.
+
+```{r caretControl, echo=TRUE}
+set.seed(1234)
+objControl <- trainControl(method = "cv", number = 2, returnResamp = 'none',
+                           summaryFunction = twoClassSummary,
+                           #summaryFunction = twoClassSummary, defaultSummary
+                           classProbs = TRUE,
+                           savePredictions = TRUE)
+```
+
+The search grid is basically a model fine tuning option. The paramter inside the **expan.grid()** function varies according to model. The **[complete](http://topepo.github.io/caret/available-models.html)** list of tuning paramter for different models.
+
+A useful read on how numeric variables are taken care of by kernal density function is here: http://uc-r.github.io/naive_bayes
+
+> * usekernel parameter allows us to use a kernel density estimate for continuous variables versus a guassian density estimate,
+* adjust allows us to adjust the bandwidth of the kernel density (larger numbers mean more flexible density estimate),
+* fL allows us to incorporate the Laplace smoother
+
+```{r caretTune, echo=TRUE}
+#This parameter is for glmnet. Need not be executed if method  is glmStepAIC
+searchGrid <-  expand.grid(usekernel=c(TRUE), fL = c(1:5), adjust=c(1:5))
+```
+
+The model building starts here.
+> 1. **metric= "ROC"** uses ROC curve to select the best model.Accuracy, Kappa are other options. To use this change twoClassSummary to defaultSummary in **ObjControl**
+2. **verbose = FALSE**: does not show the processing output on console
+
+The factor names at times may not be consistent. R may expect **"Not.Joined"** but the actual level may be **"Not Joined"** This is corrected by using **make.names()** function to give syntactically valid names.
+
+In case of large number of predictors and particularly (numeric predicators), the naive bayes (with kernal density estimation) may end up giving warning messages `Numerical 0 probability for all classes with observation...`.
+
+Please refer to the post to know about the issue: https://github.com/topepo/caret/issues/793
+
+```{r caretModel, echo=TRUE, message=FALSE, warning=FALSE}
+#naive_train_df$StatusFactor <- as.factor(ifelse(naive_train_df$Status == "Joined", 1,0))
+set.seed(766)
+levels(naive_train_df$Status) <- make.names(levels(factor(naive_train_df$Status)))
+naive_caret_model <- train(naive_train_df[,1:4],
+                      naive_train_df[,5],
+                      method = 'nb', #'glm', glmnet
+                      trControl = objControl,
+                      tuneGrid= searchGrid,
+                      metric = "ROC")
+```
+
+## Model Evaluation
+
+### 1. One useful plot from caret package is the variable importance plot
+
+In case you get an error "Invalid Graphic state", uncomment the line below
+
+```{r caretVarImp, echo=TRUE}
+naive_caret_model
+summary(naive_caret_model$finalModel)
+
+#dev.off()
+#plot(varImp(naive_caret_model, scale = TRUE))
+```
+
+### 2. The prediction and confusion Matrix on train data.
+
+The syntax for prediction in caret is almost similar expect the the **type** attribute expects input as **'raw'** or **'prob'**. In case of prob, the predicted value holds the probability of both positive and negative class.
+
+```{r caretPrediction, echo=TRUE}
+#Missing code. May result in error
+levels(naive_train_df$Status) <- make.names(levels(factor(naive_train_df$Status)))
+caretPredictedClass <- predict(object = naive_caret_model, naive_train_df[,1:4], type = 'raw')
+confusionMatrix(caretPredictedClass,naive_train_df$Status)
+```
+
+### 4. Confusion Matrix on the test data
+
+The **predict** function is used to get the predicted probability on the new dataset. The probability value along with the optimal cut-off can be used to build confusion matrix
+
+```{r modelValidation, echo=FALSE,tidy=TRUE}
+test_predicted_prob = predict(naive_caret_model, naive_test_df, type = "prob")
+
+#variable with all the values as joined
+n <- length(naive_test_df$Status)
+predicted_y = rep("Not Joined", n)
+
+# defining log odds in favor of not joining
+predicted_y[test_predicted_prob[1] > test_predicted_prob[2]] = "Joined"
+
+#add the model_precition in the data
+naive_test_df$predicted_y <- predicted_y
+
+###Create the confusionmatrix###
+addmargins(table(naive_test_df$Status, naive_test_df$predicted_y))
+mean(naive_test_df$predicted_y == naive_test_df$Status)
+```
+
+### 5. ROC Plot on the test data
+
+ROCR package can be used to evaluate the model performace on the test data. The same package can also be used to get the model performace on the test data.
+
+```{r validationROC, echo=FALSE,tidy=TRUE}
+#error in below line
+lgPredObj <- prediction(test_predicted_prob[2],naive_test_df$Status)
+lgPerfObj <- performance(lgPredObj, "tpr","fpr")
+plot(lgPerfObj,main = "ROC Curve",col = 2,lwd = 2)
+abline(a = 0,b = 1,lwd = 2,lty = 3,col = "black")
+performance(lgPredObj, "auc")
+```
+
+#### End of Document
+
+***
+***

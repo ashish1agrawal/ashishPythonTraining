@@ -1,0 +1,181 @@
+---
+author: Kumar Rahul
+date: 23 May 2017
+output: word_document
+title: Analysis of the Company Financial Manipulations
+---
+
+# Multivariate Gaussian Model
+
+### By Kumar Rahul
+The analysis is on company financial manipulations and devise algorithm to identify a manipulater from a non manipulater based on the financial ratios reported by the companies. There are a total of 1239 observations in the data set. Out of these 1239 observations, there are 1200 non manipulaters and 39 manipulaters
+
+***
+
+```{r include=FALSE}
+library(caret)            #for split and model accuracy
+setwd("/Users/Rahul/Documents/Rahul Office/IIMB/Work @ IIMB/Training Material/Concepts/R files/R_gaussian_model")
+```
+
+## Preparing data
+
+#### Read data from a specified location
+
+```{r echo=TRUE}
+raw_df <- read.csv("/Users/Rahul/Documents/Rahul Office/IIMB/Work @ IIMB/Training Material/Concepts/R files/R_gaussian_model/Company_Fraud_Data_for_Gaussian_Anomaly_Detection.csv",head=TRUE,na.strings=c("", " ", "NA"), sep=",")
+
+filter_df <- raw_df[,-c(1)]
+head(filter_df)
+```
+
+```{r}
+set.seed(1224)
+trainIndex <- createDataPartition(filter_df$Status, p = 0.75, list = FALSE)
+train_df <- filter_df[trainIndex,]
+test_df <- filter_df[-trainIndex,]
+```
+
+```{r}
+subset_manipulator_df <- subset(train_df,
+                    train_df$Status == "Yes")
+new_train_df <- subset(train_df,train_df$Status=="No")
+new_test_df <- rbind(test_df,subset_manipulator_df)
+```
+
+#### Prepare and run numerical summaries
+
+```{r}
+summary(new_train_df) #summary of the data
+new_train_df <- na.omit(new_train_df) # listwise deletion of missing
+new_test_df <- na.omit(new_test_df) # listwise deletion of missing
+```
+
+#### Train and test dataset with needed variables
+
+```{r}
+model_train_df <- as.data.frame(new_train_df[,c(#"DSRI",
+                                          #"GMI",
+                                          "AQI",
+                                          #"SGI",
+                                          "DEPI",
+                                          "SGAI",
+                                          "ACCR",
+                                          "LEVI",
+                                          "Status"
+)])
+
+model_test_df <- as.data.frame(new_test_df[,c(#"DSRI",
+                                        #"GMI",
+                                        "AQI",
+                                        #"SGI",
+                                        "DEPI",
+                                        "SGAI",
+                                        "ACCR",
+                                        "LEVI",
+                                        "Status"
+)])
+```
+
+## Gaussian Model
+
+```{r}
+mean_model_train_df <- apply(model_train_df[,1:5], 2, mean)
+sd_model_train_df <- apply(model_train_df[,1:5], 2, sd)
+```
+
+```{r}
+gaussian_model <- function(x,m,s){
+  constant <- 1 / (s * sqrt( 2 * pi))
+  value <- exp((-1*(x - m) ^ 2) / (2 * (s ^ 2)))
+  constant*value
+}
+```
+
+```{r}
+prob <- apply(model_test_df[1:5], 1, function(x,y,z) gaussian_model(x,mean_model_train_df[y],sd_model_train_df[z]))
+prob <- t(prob)
+colnames(prob) <- paste("P(", colnames(prob), ")", sep = "")
+
+gaussian_model_test_df <- cbind(model_test_df,prob)
+```
+
+```{r}
+gaussian_model_test_df$JointProb <-
+                  #gaussian_model_test_df$`P(DSRI)`*
+                  #gaussian_model_test_df$`P(GMI)`*
+                  gaussian_model_test_df$`P(AQI)`*
+                  #gaussian_model_test_df$`P(SGI)`*
+                  gaussian_model_test_df$`P(DEPI)`*
+                  gaussian_model_test_df$`P(SGAI)`*
+                  gaussian_model_test_df$`P(ACCR)`*
+                  gaussian_model_test_df$`P(LEVI)`
+gaussian_model_test_df$Actual.Status <- gaussian_model_test_df$Status
+```
+
+```{r variableDeclaration, include=FALSE}
+#creating empty vectors to store the results.
+msclaf_cost <- c()
+youden_index <- c()
+cutoff <- c()
+P11 <- c() #correct classification of positive as positive
+P00 <- c() #correct classification of negative as negative
+P10 <- c() #misclassification of positive class to negative class
+P01 <- c() #misclassification of negative class to positive class
+```
+
+```{r modelOptimalCutOff, echo=FALSE,tidy=TRUE}
+n <- length(gaussian_model_test_df$Actual.Status)
+costs = matrix(c(0,2,1, 0), ncol = 2)
+colnames(costs) = rownames(costs) = c("Yes", "No")
+as.table(costs)
+```
+
+The misclassification cost table is:
+
+```{r costCal, echo=TRUE, tidy=TRUE}
+for (i in seq(0.05, 1, .05)) {
+  predicted_status_df = rep("No", n)
+  predicted_status_df[gaussian_model_test_df$JointProb < i] = "Yes"
+  tbl <- table(gaussian_model_test_df$Actual.Status, predicted_status_df)
+  if ( i <= 1) {
+    #Classifying Not Joined as Joined
+    P10[20*i] <- tbl[2]/(tbl[2] + tbl[4])
+
+    P11[20*i] <- tbl[4]/(tbl[2] + tbl[4])
+
+    #Classifying Joined as Not Joined
+    P01[20*i] <- tbl[3]/(tbl[1] + tbl[3])
+
+    P00[20*i] <- tbl[1]/(tbl[1] + tbl[3])
+
+    cutoff[20*i] <- i
+    msclaf_cost[20*i] <- P10[20*i]*costs[2] + P01[20*i]*costs[3]
+    youden_index[20*i] <- P11[20*i] + P00[20*i] - 1
+  }
+}
+cost_table_df <- cbind(cutoff,P10,P01,msclaf_cost, P11, P00, youden_index)
+cost_table_df
+```
+
+## Model Statistics
+
+```{r modelValidation, echo=FALSE,tidy=TRUE}
+#variable with all the values as No
+n <- length(gaussian_model_test_df$Actual.Status)
+
+predicted_status_df = rep("No", n)
+
+# Changing the Status to Manipulator = Yes if probability is less than threshold
+predicted_status_df[gaussian_model_test_df$JointProb < 0.25] = "Yes"
+
+#add the model_precition in the data
+gaussian_model_test_df$predicted_status_df <- predicted_status_df
+
+###Create the confusionmatrix###
+addmargins(table(gaussian_model_test_df$Actual.Status, gaussian_model_test_df$predicted_status_df))
+mean(gaussian_model_test_df$predicted_status_df == gaussian_model_test_df$Actual.Status)
+```
+
+End of document
+
+***

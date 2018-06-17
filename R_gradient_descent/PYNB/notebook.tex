@@ -1,0 +1,624 @@
+
+% Default to the notebook output style
+
+    
+
+
+% Inherit from the specified cell style.
+
+
+
+
+    
+\documentclass[11pt]{article}
+
+    
+    
+    \usepackage[T1]{fontenc}
+    % Nicer default font (+ math font) than Computer Modern for most use cases
+    \usepackage{mathpazo}
+
+    % Basic figure setup, for now with no caption control since it's done
+    % automatically by Pandoc (which extracts ![](path) syntax from Markdown).
+    \usepackage{graphicx}
+    % We will generate all images so they have a width \maxwidth. This means
+    % that they will get their normal width if they fit onto the page, but
+    % are scaled down if they would overflow the margins.
+    \makeatletter
+    \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth
+    \else\Gin@nat@width\fi}
+    \makeatother
+    \let\Oldincludegraphics\includegraphics
+    % Set max figure width to be 80% of text width, for now hardcoded.
+    \renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=.8\maxwidth]{#1}}
+    % Ensure that by default, figures have no caption (until we provide a
+    % proper Figure object with a Caption API and a way to capture that
+    % in the conversion process - todo).
+    \usepackage{caption}
+    \DeclareCaptionLabelFormat{nolabel}{}
+    \captionsetup{labelformat=nolabel}
+
+    \usepackage{adjustbox} % Used to constrain images to a maximum size 
+    \usepackage{xcolor} % Allow colors to be defined
+    \usepackage{enumerate} % Needed for markdown enumerations to work
+    \usepackage{geometry} % Used to adjust the document margins
+    \usepackage{amsmath} % Equations
+    \usepackage{amssymb} % Equations
+    \usepackage{textcomp} % defines textquotesingle
+    % Hack from http://tex.stackexchange.com/a/47451/13684:
+    \AtBeginDocument{%
+        \def\PYZsq{\textquotesingle}% Upright quotes in Pygmentized code
+    }
+    \usepackage{upquote} % Upright quotes for verbatim code
+    \usepackage{eurosym} % defines \euro
+    \usepackage[mathletters]{ucs} % Extended unicode (utf-8) support
+    \usepackage[utf8x]{inputenc} % Allow utf-8 characters in the tex document
+    \usepackage{fancyvrb} % verbatim replacement that allows latex
+    \usepackage{grffile} % extends the file name processing of package graphics 
+                         % to support a larger range 
+    % The hyperref package gives us a pdf with properly built
+    % internal navigation ('pdf bookmarks' for the table of contents,
+    % internal cross-reference links, web links for URLs, etc.)
+    \usepackage{hyperref}
+    \usepackage{longtable} % longtable support required by pandoc >1.10
+    \usepackage{booktabs}  % table support for pandoc > 1.12.2
+    \usepackage[inline]{enumitem} % IRkernel/repr support (it uses the enumerate* environment)
+    \usepackage[normalem]{ulem} % ulem is needed to support strikethroughs (\sout)
+                                % normalem makes italics be italics, not underlines
+    
+
+    
+    
+    % Colors for the hyperref package
+    \definecolor{urlcolor}{rgb}{0,.145,.698}
+    \definecolor{linkcolor}{rgb}{.71,0.21,0.01}
+    \definecolor{citecolor}{rgb}{.12,.54,.11}
+
+    % ANSI colors
+    \definecolor{ansi-black}{HTML}{3E424D}
+    \definecolor{ansi-black-intense}{HTML}{282C36}
+    \definecolor{ansi-red}{HTML}{E75C58}
+    \definecolor{ansi-red-intense}{HTML}{B22B31}
+    \definecolor{ansi-green}{HTML}{00A250}
+    \definecolor{ansi-green-intense}{HTML}{007427}
+    \definecolor{ansi-yellow}{HTML}{DDB62B}
+    \definecolor{ansi-yellow-intense}{HTML}{B27D12}
+    \definecolor{ansi-blue}{HTML}{208FFB}
+    \definecolor{ansi-blue-intense}{HTML}{0065CA}
+    \definecolor{ansi-magenta}{HTML}{D160C4}
+    \definecolor{ansi-magenta-intense}{HTML}{A03196}
+    \definecolor{ansi-cyan}{HTML}{60C6C8}
+    \definecolor{ansi-cyan-intense}{HTML}{258F8F}
+    \definecolor{ansi-white}{HTML}{C5C1B4}
+    \definecolor{ansi-white-intense}{HTML}{A1A6B2}
+
+    % commands and environments needed by pandoc snippets
+    % extracted from the output of `pandoc -s`
+    \providecommand{\tightlist}{%
+      \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+    % Add ',fontsize=\small' for more characters per line
+    \newenvironment{Shaded}{}{}
+    \newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{{#1}}}
+    \newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{{#1}}}}
+    \newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{{#1}}}
+    \newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{{#1}}}
+    \newcommand{\RegionMarkerTok}[1]{{#1}}
+    \newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\NormalTok}[1]{{#1}}
+    
+    % Additional commands for more recent versions of Pandoc
+    \newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{{#1}}}
+    \newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{{#1}}}
+    \newcommand{\ImportTok}[1]{{#1}}
+    \newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{{#1}}}}
+    \newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{{#1}}}
+    \newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{{#1}}}
+    \newcommand{\BuiltInTok}[1]{{#1}}
+    \newcommand{\ExtensionTok}[1]{{#1}}
+    \newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{{#1}}}
+    \newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{{#1}}}
+    \newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    
+    
+    % Define a nice break command that doesn't care if a line doesn't already
+    % exist.
+    \def\br{\hspace*{\fill} \\* }
+    % Math Jax compatability definitions
+    \def\gt{>}
+    \def\lt{<}
+    % Document parameters
+    \title{german\_credit\_gradient\_descent}
+    
+    
+    
+
+    % Pygments definitions
+    
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\expandafter\def\csname PY@tok@w\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\expandafter\def\csname PY@tok@c\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.74,0.48,0.00}{##1}}}
+\expandafter\def\csname PY@tok@k\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\expandafter\def\csname PY@tok@o\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@ow\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@ne\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.82,0.25,0.23}{##1}}}
+\expandafter\def\csname PY@tok@nv\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@no\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nl\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.63,0.00}{##1}}}
+\expandafter\def\csname PY@tok@ni\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.60,0.60,0.60}{##1}}}
+\expandafter\def\csname PY@tok@na\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.49,0.56,0.16}{##1}}}
+\expandafter\def\csname PY@tok@nt\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\expandafter\def\csname PY@tok@s\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sd\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@si\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\expandafter\def\csname PY@tok@se\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sr\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\expandafter\def\csname PY@tok@ss\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@sx\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@m\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@gh\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@gu\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@gd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@gi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.63,0.00}{##1}}}
+\expandafter\def\csname PY@tok@gr\endcsname{\def\PY@tc##1{\textcolor[rgb]{1.00,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@ge\endcsname{\let\PY@it=\textit}
+\expandafter\def\csname PY@tok@gs\endcsname{\let\PY@bf=\textbf}
+\expandafter\def\csname PY@tok@gp\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@go\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.53,0.53}{##1}}}
+\expandafter\def\csname PY@tok@gt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.27,0.87}{##1}}}
+\expandafter\def\csname PY@tok@err\endcsname{\def\PY@bc##1{\setlength{\fboxsep}{0pt}\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{\strut ##1}}}
+\expandafter\def\csname PY@tok@kc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kd\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kr\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@bp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@fm\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@vc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vg\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vm\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@sa\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@dl\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@s2\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@s1\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@mb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@il\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mo\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@ch\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cm\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cpf\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@c1\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cs\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZam{\char`\&}
+\def\PYZlt{\char`\<}
+\def\PYZgt{\char`\>}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZhy{\char`\-}
+\def\PYZsq{\char`\'}
+\def\PYZdq{\char`\"}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+
+
+    % Exact colors from NB
+    \definecolor{incolor}{rgb}{0.0, 0.0, 0.5}
+    \definecolor{outcolor}{rgb}{0.545, 0.0, 0.0}
+
+
+
+    
+    % Prevent overflowing lines due to hard-to-break entities
+    \sloppy 
+    % Setup hyperref package
+    \hypersetup{
+      breaklinks=true,  % so long urls are correctly broken across lines
+      colorlinks=true,
+      urlcolor=urlcolor,
+      linkcolor=linkcolor,
+      citecolor=citecolor,
+      }
+    % Slightly bigger margins than the latex defaults
+    
+    \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+    
+    
+
+    \begin{document}
+    
+    
+    \maketitle
+    
+    
+
+    
+     Demostration of Gradient Descent using R:
+
+ Kumar Rahul
+
+In this exercise, we will use the German Credit Rating data to
+demostrate Gradient Descent Algorithm.The Dataset can be dowloaded from:
+
+https://archive.ics.uci.edu/ml/datasets/statlog+(german+credit+data)
+
+    \hypertarget{code-starts-here}{%
+\section{Code starts here}\label{code-starts-here}}
+
+We are going to use below mentioned libraries for demonstrating plot the
+cost function:
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}1}]:} \PY{k+kn}{library}\PY{p}{(}ggplot2\PY{p}{)}
+\end{Verbatim}
+
+
+    \hypertarget{data-import-and-manipulation}{%
+\subsection{Data Import and
+Manipulation}\label{data-import-and-manipulation}}
+
+\hypertarget{import-a-data-set}{%
+\subsubsection{1. Import a data set}\label{import-a-data-set}}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}2}]:} raw\PYZus{}data \PY{o}{\PYZlt{}\PYZhy{}} read.csv\PY{p}{(}\PY{l+s}{\PYZdq{}}\PY{l+s}{/Users/Rahul/Documents/Datasets/german\PYZus{}credit\PYZus{}rating\PYZus{}data 2010.csv\PYZdq{}}\PY{p}{,} 
+                             header \PY{o}{=} \PY{k+kc}{TRUE}\PY{p}{,}sep \PY{o}{=} \PY{l+s}{\PYZdq{}}\PY{l+s}{,\PYZdq{}}\PY{p}{,}na.strings \PY{o}{=} \PY{k+kt}{c}\PY{p}{(}\PY{l+s}{\PYZdq{}}\PY{l+s}{\PYZdq{}}\PY{p}{,}\PY{l+s}{\PYZdq{}}\PY{l+s}{ \PYZdq{}}\PY{p}{,} \PY{l+s}{\PYZdq{}}\PY{l+s}{NA\PYZdq{}}\PY{p}{)}\PY{p}{)}
+        
+        filter\PYZus{}data \PY{o}{\PYZlt{}\PYZhy{}} raw\PYZus{}data
+        filter\PYZus{}data \PY{o}{\PYZlt{}\PYZhy{}} raw\PYZus{}data\PY{p}{[}complete.cases\PY{p}{(}raw\PYZus{}data\PY{p}{)}\PY{p}{,}\PY{p}{]}
+        filter\PYZus{}data \PY{o}{\PYZlt{}\PYZhy{}} raw\PYZus{}data\PY{p}{[}\PY{p}{,}\PY{k+kt}{c}\PY{p}{(}\PY{l+m}{\PYZhy{}1}\PY{p}{)}\PY{p}{]}
+\end{Verbatim}
+
+
+    \hypertarget{create-dummy-variable-for-factors}{%
+\subsubsection{2. Create dummy variable for
+factors}\label{create-dummy-variable-for-factors}}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}3}]:} n \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{ncol}\PY{p}{(}filter\PYZus{}data\PY{p}{)}
+        \PY{c+c1}{\PYZsh{}for creating X0 variable}
+        processed\PYZus{}data \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{cbind}\PY{p}{(}\PY{k+kp}{rep}\PY{p}{(}\PY{l+m}{1}\PY{p}{,} \PY{k+kp}{nrow}\PY{p}{(}filter\PYZus{}data\PY{p}{)}\PY{p}{)}\PY{p}{)}
+        \PY{k+kr}{for} \PY{p}{(}i \PY{k+kr}{in} \PY{l+m}{1}\PY{o}{:}n \PY{p}{)} \PY{p}{\PYZob{}}
+          \PY{k+kr}{if} \PY{p}{(}\PY{k+kp}{is.factor}\PY{p}{(}filter\PYZus{}data\PY{p}{[}\PY{p}{,}i\PY{p}{]}\PY{p}{)}\PY{p}{)} \PY{p}{\PYZob{}}
+            \PY{c+c1}{\PYZsh{}creating dummies for the factors and storing in temp}
+            temp \PY{o}{\PYZlt{}\PYZhy{}} model.matrix\PY{p}{(}\PY{o}{\PYZti{}}filter\PYZus{}data\PY{p}{[}\PY{p}{,}i\PY{p}{]}\PY{p}{)}
+            \PY{c+c1}{\PYZsh{}removing the first column which is an intercept term in dummy coding}
+            temp \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{subset}\PY{p}{(}temp\PY{p}{,} select \PY{o}{=} \PY{o}{\PYZhy{}}\PY{k+kt}{c}\PY{p}{(}\PY{l+m}{1}\PY{p}{)} \PY{p}{)}
+            \PY{c+c1}{\PYZsh{}loop through to rename the column names appropriately}
+              \PY{k+kr}{for} \PY{p}{(}\PY{k+kt}{c} \PY{k+kr}{in} \PY{l+m}{1}\PY{o}{:}\PY{k+kp}{ncol}\PY{p}{(}temp\PY{p}{)}\PY{p}{)} \PY{p}{\PYZob{}}
+                str \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{colnames}\PY{p}{(}temp\PY{p}{)}\PY{p}{[}\PY{k+kt}{c}\PY{p}{]}
+                \PY{k+kp}{colnames}\PY{p}{(}temp\PY{p}{)}\PY{p}{[}\PY{k+kt}{c}\PY{p}{]} \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{sub}\PY{p}{(}\PY{l+s}{\PYZdq{}}\PY{l+s}{filter\PYZus{}data\PYZbs{}\PYZbs{}[, i\PYZbs{}\PYZbs{}]\PYZdq{}}\PY{p}{,}\PY{l+s}{\PYZdq{}}\PY{l+s}{ \PYZdq{}}\PY{p}{,}\PY{k+kp}{colnames}\PY{p}{(}temp\PY{p}{)}\PY{p}{[}\PY{k+kt}{c}\PY{p}{]}\PY{p}{)}
+                \PY{k+kp}{colnames}\PY{p}{(}temp\PY{p}{)}\PY{p}{[}\PY{k+kt}{c}\PY{p}{]} \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{paste}\PY{p}{(}\PY{k+kp}{colnames}\PY{p}{(}filter\PYZus{}data\PY{p}{)}\PY{p}{[}i\PY{p}{]}\PY{p}{,} \PY{l+s}{\PYZdq{}}\PY{l+s}{\PYZhy{} \PYZdq{}}\PY{p}{,} \PY{k+kp}{colnames}\PY{p}{(}temp\PY{p}{)}\PY{p}{[}\PY{k+kt}{c}\PY{p}{]}\PY{p}{)}
+              \PY{p}{\PYZcb{}}
+            \PY{c+c1}{\PYZsh{}the factors after dummy variable creation is appeneded to the processed\PYZus{}data}
+            processed\PYZus{}data \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{cbind}\PY{p}{(}processed\PYZus{}data\PY{p}{,}temp\PY{p}{)}
+          \PY{p}{\PYZcb{}}
+          \PY{c+c1}{\PYZsh{}in case not a factor, store the variable in processed\PYZus{}data directly}
+          \PY{k+kr}{else} \PY{p}{\PYZob{}}
+            processed\PYZus{}data \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{cbind}\PY{p}{(}processed\PYZus{}data\PY{p}{,}filter\PYZus{}data\PY{p}{[}\PY{p}{,}i\PY{p}{]}\PY{p}{)}
+            len \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{ncol}\PY{p}{(}processed\PYZus{}data\PY{p}{)}
+            \PY{k+kp}{colnames}\PY{p}{(}processed\PYZus{}data\PY{p}{)}\PY{p}{[}len\PY{p}{]} \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{colnames}\PY{p}{(}filter\PYZus{}data\PY{p}{[}i\PY{p}{]}\PY{p}{)}
+            
+            \PY{c+c1}{\PYZsh{}standardize the numeric variable for faster descent. (Feature scaling)}
+            processed\PYZus{}data\PY{p}{[}\PY{p}{,}len\PY{p}{]} \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{scale}\PY{p}{(}processed\PYZus{}data\PY{p}{[}\PY{p}{,}len\PY{p}{]}\PY{p}{)}
+          \PY{p}{\PYZcb{}}
+        \PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+
+    \hypertarget{seperate-x-and-y-variable-and-converting-to-matrix-form}{%
+\subsubsection{3. Seperate x and y variable and converting to matrix
+form}\label{seperate-x-and-y-variable-and-converting-to-matrix-form}}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}4}]:} x \PY{o}{\PYZlt{}\PYZhy{}} processed\PYZus{}data
+        y \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{as.matrix}\PY{p}{(}x\PY{p}{[}\PY{p}{,}\PY{k+kp}{ncol}\PY{p}{(}x\PY{p}{)}\PY{p}{]}\PY{p}{)}
+        \PY{k+kp}{colnames}\PY{p}{(}y\PY{p}{)}\PY{p}{[}\PY{l+m}{1}\PY{p}{]} \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{colnames}\PY{p}{(}x\PY{p}{)}\PY{p}{[}\PY{k+kp}{ncol}\PY{p}{(}x\PY{p}{)}\PY{p}{]}
+        x \PY{o}{\PYZlt{}\PYZhy{}} x\PY{p}{[}\PY{p}{,}\PY{k+kt}{c}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{k+kp}{ncol}\PY{p}{(}x\PY{p}{)}\PY{p}{)}\PY{p}{]}
+        \PY{k+kp}{colnames}\PY{p}{(}x\PY{p}{)}\PY{p}{[}\PY{l+m}{1}\PY{p}{]} \PY{o}{\PYZlt{}\PYZhy{}} \PY{l+s}{\PYZdq{}}\PY{l+s}{X0\PYZdq{}}
+        x \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{as.matrix}\PY{p}{(}x\PY{p}{)}
+\end{Verbatim}
+
+
+    \hypertarget{create-functions}{%
+\subsection{Create functions}\label{create-functions}}
+
+\hypertarget{define-sigmoid-function}{%
+\subsubsection{1. Define Sigmoid
+function}\label{define-sigmoid-function}}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}5}]:} sigmoid \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kr}{function}\PY{p}{(}z\PY{p}{)} \PY{p}{\PYZob{}}
+        \PY{l+m}{1}\PY{o}{/}\PY{p}{(}\PY{l+m}{1} \PY{o}{+} \PY{k+kp}{exp}\PY{p}{(}\PY{o}{\PYZhy{}}z\PY{p}{)}\PY{p}{)}
+        \PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+
+    \hypertarget{define-hypothesis-function}{%
+\subsubsection{2. Define Hypothesis
+function}\label{define-hypothesis-function}}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}6}]:} hypothesisLr \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kr}{function}\PY{p}{(}theta\PY{p}{,} x\PY{p}{)} \PY{p}{\PYZob{}}
+        sigmoid\PY{p}{(}x \PY{o}{\PYZpc{}*\PYZpc{}} theta\PY{p}{)} \PY{c+c1}{\PYZsh{}matrix multiplication (x is 1000*75 and theta is 75*1, result 75*1)}
+        \PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+
+    \hypertarget{define-cost-function}{%
+\subsubsection{3. Define Cost function}\label{define-cost-function}}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}7}]:} computeCost \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kr}{function}\PY{p}{(}theta\PY{p}{,} x\PY{p}{,} y\PY{p}{)} \PY{p}{\PYZob{}}
+        m \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{length}\PY{p}{(}y\PY{p}{)}
+        s \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{sapply}\PY{p}{(}\PY{l+m}{1}\PY{o}{:}m\PY{p}{,} \PY{k+kr}{function}\PY{p}{(}i\PY{p}{)}
+        y\PY{p}{[}i\PY{p}{]}\PY{o}{*}\PY{k+kp}{log}\PY{p}{(}hypothesisLr\PY{p}{(}theta\PY{p}{,}x\PY{p}{[}i\PY{p}{,}\PY{p}{]}\PY{p}{)}\PY{p}{)} \PY{o}{+} \PY{p}{(}\PY{l+m}{1} \PY{o}{\PYZhy{}} y\PY{p}{[}i\PY{p}{]}\PY{p}{)}\PY{o}{*}\PY{k+kp}{log}\PY{p}{(}\PY{l+m}{1} \PY{o}{\PYZhy{}} hypothesisLr\PY{p}{(}theta\PY{p}{,}x\PY{p}{[}i\PY{p}{,}\PY{p}{]}\PY{p}{)}\PY{p}{)}
+        \PY{p}{)}
+        j \PY{o}{\PYZlt{}\PYZhy{}} \PY{l+m}{\PYZhy{}1}\PY{o}{/}m \PY{o}{*} \PY{k+kp}{sum}\PY{p}{(}s\PY{p}{)}
+        \PY{k+kr}{return}\PY{p}{(}j\PY{p}{)}
+        \PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+
+    \hypertarget{define-gradient-descent-function}{%
+\subsubsection{4. Define Gradient Descent
+function}\label{define-gradient-descent-function}}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}8}]:} gradAlgo \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kr}{function}\PY{p}{(}theta\PY{p}{,} x\PY{p}{,} y\PY{p}{)} \PY{p}{\PYZob{}}
+          m \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{length}\PY{p}{(}y\PY{p}{)}
+          g \PY{o}{\PYZlt{}\PYZhy{}} \PY{l+m}{1}\PY{o}{/}m \PY{o}{*} \PY{k+kp}{t}\PY{p}{(}x\PY{p}{)} \PY{o}{\PYZpc{}*\PYZpc{}} \PY{p}{(}hypothesisLr\PY{p}{(}theta\PY{p}{,}x\PY{p}{)} \PY{o}{\PYZhy{}} y\PY{p}{)}
+          \PY{k+kr}{return}\PY{p}{(}g\PY{p}{)}
+        \PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+
+    \hypertarget{call-functions}{%
+\subsection{Call functions}\label{call-functions}}
+
+\hypertarget{initialize-alpha-theta-and-compute-cost}{%
+\subsubsection{\texorpdfstring{1. Initialize \(\alpha, \theta\) and
+compute
+cost}{1. Initialize \textbackslash{}alpha, \textbackslash{}theta and compute cost}}\label{initialize-alpha-theta-and-compute-cost}}
+
+Run normal gradient descent to compute theta and cost function J for
+each iteration
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}9}]:} alpha \PY{o}{\PYZlt{}\PYZhy{}} \PY{l+m}{1} \PY{c+c1}{\PYZsh{}learning rate 1}
+        iter \PY{o}{\PYZlt{}\PYZhy{}} \PY{l+m}{1000} \PY{c+c1}{\PYZsh{}no of interations for descent 5000}
+        \PY{c+c1}{\PYZsh{}m \PYZlt{}\PYZhy{} length(y)}
+        theta \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{rep}\PY{p}{(}\PY{l+m}{0}\PY{p}{,} \PY{k+kp}{ncol}\PY{p}{(}x\PY{p}{)}\PY{p}{)}
+        
+        \PY{c+c1}{\PYZsh{}cost at intial theta}
+        computeCost\PY{p}{(}theta\PY{p}{,} x\PY{p}{,} y\PY{p}{)}
+        j \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{rep}\PY{p}{(}\PY{l+m}{0}\PY{p}{,}iter\PY{p}{)} \PY{c+c1}{\PYZsh{}to maintain log of cost}
+        \PY{k+kr}{for} \PY{p}{(}\PY{k+kt}{c} \PY{k+kr}{in} \PY{l+m}{1}\PY{o}{:}iter\PY{p}{)} \PY{p}{\PYZob{}}
+          theta \PY{o}{\PYZlt{}\PYZhy{}} theta \PY{o}{\PYZhy{}} alpha \PY{o}{*} gradAlgo\PY{p}{(}theta\PY{p}{,}x\PY{p}{,}y\PY{p}{)}
+          j\PY{p}{[}\PY{k+kt}{c}\PY{p}{]} \PY{o}{\PYZlt{}\PYZhy{}} computeCost\PY{p}{(}theta\PY{p}{,}x\PY{p}{,}y\PY{p}{)}
+        \PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+
+    0.693147180559945
+
+    
+    \hypertarget{plot-cost-value}{%
+\subsubsection{2. Plot Cost Value}\label{plot-cost-value}}
+
+Plot cost as a function of no of iterations to converge
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}10}]:} ggplot\PY{p}{(}\PY{p}{)} \PY{o}{+}
+           aes\PY{p}{(}x \PY{o}{=} \PY{l+m}{1}\PY{o}{:}iter\PY{p}{,} y \PY{o}{=} j\PY{p}{)} \PY{o}{+}
+           geom\PYZus{}point\PY{p}{(}colour \PY{o}{=} \PY{l+s}{\PYZdq{}}\PY{l+s}{red\PYZdq{}}\PY{p}{)} \PY{o}{+}
+           geom\PYZus{}path\PY{p}{(}\PY{p}{)} \PY{o}{+} xlab\PY{p}{(}\PY{l+s}{\PYZdq{}}\PY{l+s}{Iteration\PYZdq{}}\PY{p}{)} \PY{o}{+}
+           ylab\PY{p}{(}\PY{l+s}{\PYZdq{}}\PY{l+s}{Cost J\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+
+
+    
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_20_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \hypertarget{build-classfication-matrix}{%
+\subsubsection{3. Build Classfication
+matrix}\label{build-classfication-matrix}}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}11}]:} m \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{nrow}\PY{p}{(}y\PY{p}{)}
+         actual\PYZus{}y \PY{o}{\PYZlt{}\PYZhy{}} y
+         actual\PYZus{}y\PY{p}{[}actual\PYZus{}y \PY{o}{==} \PY{l+m}{0}\PY{p}{]} \PY{o}{\PYZlt{}\PYZhy{}} \PY{l+s}{\PYZdq{}}\PY{l+s}{Bad\PYZdq{}}
+         actual\PYZus{}y\PY{p}{[}actual\PYZus{}y \PY{o}{==} \PY{l+m}{1}\PY{p}{]} \PY{o}{\PYZlt{}\PYZhy{}} \PY{l+s}{\PYZdq{}}\PY{l+s}{Good\PYZdq{}}
+         predicted\PYZus{}y \PY{o}{=} \PY{k+kp}{rep}\PY{p}{(}\PY{l+s}{\PYZdq{}}\PY{l+s}{Bad\PYZdq{}}\PY{p}{,} m\PY{p}{)}\PY{p}{;}
+         predicted\PYZus{}y\PY{p}{[}hypothesisLr\PY{p}{(}theta\PY{p}{,}x\PY{p}{)} \PY{o}{\PYZgt{}=} \PY{l+m}{0.5}\PY{p}{]} \PY{o}{=} \PY{l+s}{\PYZdq{}}\PY{l+s}{Good\PYZdq{}}\PY{p}{;}
+         addmargins\PY{p}{(}\PY{k+kp}{table}\PY{p}{(}actual\PYZus{}y\PY{p}{,} predicted\PYZus{}y\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{tabular}{r|lll}
+  & Bad & Good & Sum\\
+\hline
+	Bad & 158  & 142  &  300\\
+	Good &  73  & 627  &  700\\
+	Sum & 231  & 769  & 1000\\
+\end{tabular}
+
+
+    
+    \hypertarget{score-new-cases}{%
+\subsubsection{4. Score new cases}\label{score-new-cases}}
+
+Scoring new profile pass all X's
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}12}]:} \PY{c+c1}{\PYZsh{}new\PYZus{}score \PYZlt{}\PYZhy{} (sigmoid(c(1,\PYZlt{}all X\PYZsq{}s\PYZgt{}) \PYZpc{}*\PYZpc{} theta))}
+\end{Verbatim}
+
+
+    \hypertarget{compare-the-gradient-descent-with-glm}{%
+\subsection{Compare the Gradient Descent with
+GLM}\label{compare-the-gradient-descent-with-glm}}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}13}]:} lg\PYZus{}glm \PY{o}{\PYZlt{}\PYZhy{}} glm\PY{p}{(}filter\PYZus{}data\PY{o}{\PYZdl{}}Credit.classification \PY{o}{\PYZti{}} \PY{l+m}{.}\PY{p}{,}data \PY{o}{=} filter\PYZus{}data\PY{p}{,} family \PY{o}{=} \PY{l+s}{\PYZdq{}}\PY{l+s}{binomial\PYZdq{}}\PY{p}{)}
+         \PY{k+kp}{summary}\PY{p}{(}lg\PYZus{}glm\PY{p}{)}
+         lg\PYZus{}predict\PYZus{}prob \PY{o}{\PYZlt{}\PYZhy{}} predict\PY{p}{(}lg\PYZus{}glm\PY{p}{,} filter\PYZus{}data\PY{p}{[}\PY{p}{,}\PY{l+m}{1}\PY{o}{:}\PY{l+m}{20}\PY{p}{]}\PY{p}{,}\PY{l+s}{\PYZdq{}}\PY{l+s}{response\PYZdq{}}\PY{p}{)}
+         m \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{length}\PY{p}{(}filter\PYZus{}data\PY{p}{[}\PY{p}{,}\PY{l+m}{21}\PY{p}{]}\PY{p}{)}
+         actual\PYZus{}y \PY{o}{\PYZlt{}\PYZhy{}} filter\PYZus{}data\PY{p}{[}\PY{p}{,}\PY{l+m}{21}\PY{p}{]}
+         
+         predicted\PYZus{}y \PY{o}{=} \PY{k+kp}{rep}\PY{p}{(}\PY{l+s}{\PYZdq{}}\PY{l+s}{Bad\PYZdq{}}\PY{p}{,} m\PY{p}{)}\PY{p}{;}
+         predicted\PYZus{}y\PY{p}{[}lg\PYZus{}predict\PYZus{}prob \PY{o}{\PYZgt{}=} \PY{l+m}{0.5}\PY{p}{]} \PY{o}{=} \PY{l+s}{\PYZdq{}}\PY{l+s}{Good\PYZdq{}}\PY{p}{;}
+         addmargins\PY{p}{(}\PY{k+kp}{table}\PY{p}{(}actual\PYZus{}y\PY{p}{,} predicted\PYZus{}y\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+
+
+    
+    \begin{verbatim}
+
+Call:
+glm(formula = filter_data$Credit.classification ~ ., family = "binomial", 
+    data = filter_data)
+
+Deviance Residuals: 
+    Min       1Q   Median       3Q      Max  
+-2.6116  -0.7095   0.3752   0.6994   2.3410  
+
+Coefficients:
+                                    Estimate Std. Error z value Pr(>|z|)    
+(Intercept)                        2.353e+00  1.330e+00   1.769 0.076938 .  
+CHK_ACCTless-200DM                 3.749e-01  2.179e-01   1.720 0.085400 .  
+CHK_ACCTno-account                 1.712e+00  2.322e-01   7.373 1.66e-13 ***
+CHK_ACCTover-200DM                 9.657e-01  3.692e-01   2.616 0.008905 ** 
+Duration                          -2.786e-02  9.296e-03  -2.997 0.002724 ** 
+History bank-paid-duly            -1.434e-01  5.489e-01  -0.261 0.793921    
+History critical                   1.436e+00  4.399e-01   3.264 0.001099 ** 
+History delay                      8.532e-01  4.717e-01   1.809 0.070470 .  
+History duly-till-now              5.861e-01  4.305e-01   1.362 0.173348    
+Purpose.of.credit domestic-app    -2.173e-01  8.041e-01  -0.270 0.786976    
+Purpose.of.credit education       -7.764e-01  4.660e-01  -1.666 0.095718 .  
+Purpose.of.credit furniture        5.152e-02  3.543e-01   0.145 0.884391    
+Purpose.of.credit new-car         -7.401e-01  3.339e-01  -2.216 0.026668 *  
+Purpose.of.credit others           7.487e-01  7.998e-01   0.936 0.349202    
+Purpose.of.credit radio-tv         1.515e-01  3.370e-01   0.450 0.653002    
+Purpose.of.credit repairs         -5.237e-01  5.933e-01  -0.883 0.377428    
+Purpose.of.credit retraining       1.319e+00  1.233e+00   1.070 0.284625    
+Purpose.of.credit used-car         9.264e-01  4.409e-01   2.101 0.035645 *  
+Credit.Amount                     -1.283e-04  4.444e-05  -2.887 0.003894 ** 
+Balance.in.Savings.A.C less100DM  -3.761e-01  4.011e-01  -0.938 0.348476    
+Balance.in.Savings.A.C less500DM  -1.833e-02  4.656e-01  -0.039 0.968595    
+Balance.in.Savings.A.C over1000DM  9.631e-01  6.425e-01   1.499 0.133868    
+Balance.in.Savings.A.C unknown     5.706e-01  4.492e-01   1.270 0.203940    
+Employment one-year               -1.159e-01  2.423e-01  -0.478 0.632415    
+Employment over-seven              9.379e-02  2.510e-01   0.374 0.708653    
+Employment seven-years             6.482e-01  2.684e-01   2.415 0.015734 *  
+Employment unemployed             -1.828e-01  4.105e-01  -0.445 0.656049    
+Install_rate                      -3.301e-01  8.828e-02  -3.739 0.000185 ***
+Marital.status male-divorced      -2.755e-01  3.865e-01  -0.713 0.476040    
+Marital.status married-male        9.162e-02  3.118e-01   0.294 0.768908    
+Marital.status single-male         5.406e-01  2.102e-01   2.572 0.010113 *  
+Co.applicant guarantor             1.415e+00  5.685e-01   2.488 0.012834 *  
+Co.applicant none                  4.360e-01  4.101e-01   1.063 0.287700    
+Present.Resident                  -4.776e-03  8.641e-02  -0.055 0.955920    
+Real.Estate car                    8.690e-02  2.313e-01   0.376 0.707115    
+Real.Estate none                  -4.490e-01  4.130e-01  -1.087 0.277005    
+Real.Estate real-estate            2.814e-01  2.534e-01   1.111 0.266630    
+Age                                1.454e-02  9.222e-03   1.576 0.114982    
+Other.installment none             6.463e-01  2.391e-01   2.703 0.006871 ** 
+Other.installment stores           1.232e-01  4.119e-01   0.299 0.764878    
+Residence own                     -2.402e-01  4.503e-01  -0.534 0.593687    
+Residence rent                    -6.839e-01  4.770e-01  -1.434 0.151657    
+Num_Credits                       -2.721e-01  1.895e-01  -1.436 0.151109    
+Job skilled                       -7.524e-02  2.845e-01  -0.264 0.791419    
+Job unemployed-non-resident        4.795e-01  6.623e-01   0.724 0.469086    
+Job unskilled-resident            -5.666e-02  3.501e-01  -0.162 0.871450    
+No..dependents                    -2.647e-01  2.492e-01  -1.062 0.288249    
+Phone yes                         -3.000e-01  2.013e-01  -1.491 0.136060    
+Foreign yes                       -1.392e+00  6.258e-01  -2.225 0.026095 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 1221.73  on 999  degrees of freedom
+Residual deviance:  895.82  on 951  degrees of freedom
+AIC: 993.82
+
+Number of Fisher Scoring iterations: 5
+
+    \end{verbatim}
+
+    
+    \begin{tabular}{r|lll}
+  & Bad & Good & Sum\\
+\hline
+	 bad. & 160  & 140  &  300\\
+	 good. &  74  & 626  &  700\\
+	Sum & 234  & 766  & 1000\\
+\end{tabular}
+
+
+    
+    \hypertarget{end-of-document}{%
+\paragraph{End of Document}\label{end-of-document}}
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+
+    % Add a bibliography block to the postdoc
+    
+    
+    
+    \end{document}

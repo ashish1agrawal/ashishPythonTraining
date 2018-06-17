@@ -1,0 +1,1109 @@
+
+% Default to the notebook output style
+
+    
+
+
+% Inherit from the specified cell style.
+
+
+
+
+    
+\documentclass[11pt]{article}
+
+    
+    
+    \usepackage[T1]{fontenc}
+    % Nicer default font (+ math font) than Computer Modern for most use cases
+    \usepackage{mathpazo}
+
+    % Basic figure setup, for now with no caption control since it's done
+    % automatically by Pandoc (which extracts ![](path) syntax from Markdown).
+    \usepackage{graphicx}
+    % We will generate all images so they have a width \maxwidth. This means
+    % that they will get their normal width if they fit onto the page, but
+    % are scaled down if they would overflow the margins.
+    \makeatletter
+    \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth
+    \else\Gin@nat@width\fi}
+    \makeatother
+    \let\Oldincludegraphics\includegraphics
+    % Set max figure width to be 80% of text width, for now hardcoded.
+    \renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=.8\maxwidth]{#1}}
+    % Ensure that by default, figures have no caption (until we provide a
+    % proper Figure object with a Caption API and a way to capture that
+    % in the conversion process - todo).
+    \usepackage{caption}
+    \DeclareCaptionLabelFormat{nolabel}{}
+    \captionsetup{labelformat=nolabel}
+
+    \usepackage{adjustbox} % Used to constrain images to a maximum size 
+    \usepackage{xcolor} % Allow colors to be defined
+    \usepackage{enumerate} % Needed for markdown enumerations to work
+    \usepackage{geometry} % Used to adjust the document margins
+    \usepackage{amsmath} % Equations
+    \usepackage{amssymb} % Equations
+    \usepackage{textcomp} % defines textquotesingle
+    % Hack from http://tex.stackexchange.com/a/47451/13684:
+    \AtBeginDocument{%
+        \def\PYZsq{\textquotesingle}% Upright quotes in Pygmentized code
+    }
+    \usepackage{upquote} % Upright quotes for verbatim code
+    \usepackage{eurosym} % defines \euro
+    \usepackage[mathletters]{ucs} % Extended unicode (utf-8) support
+    \usepackage[utf8x]{inputenc} % Allow utf-8 characters in the tex document
+    \usepackage{fancyvrb} % verbatim replacement that allows latex
+    \usepackage{grffile} % extends the file name processing of package graphics 
+                         % to support a larger range 
+    % The hyperref package gives us a pdf with properly built
+    % internal navigation ('pdf bookmarks' for the table of contents,
+    % internal cross-reference links, web links for URLs, etc.)
+    \usepackage{hyperref}
+    \usepackage{longtable} % longtable support required by pandoc >1.10
+    \usepackage{booktabs}  % table support for pandoc > 1.12.2
+    \usepackage[inline]{enumitem} % IRkernel/repr support (it uses the enumerate* environment)
+    \usepackage[normalem]{ulem} % ulem is needed to support strikethroughs (\sout)
+                                % normalem makes italics be italics, not underlines
+    
+
+    
+    
+    % Colors for the hyperref package
+    \definecolor{urlcolor}{rgb}{0,.145,.698}
+    \definecolor{linkcolor}{rgb}{.71,0.21,0.01}
+    \definecolor{citecolor}{rgb}{.12,.54,.11}
+
+    % ANSI colors
+    \definecolor{ansi-black}{HTML}{3E424D}
+    \definecolor{ansi-black-intense}{HTML}{282C36}
+    \definecolor{ansi-red}{HTML}{E75C58}
+    \definecolor{ansi-red-intense}{HTML}{B22B31}
+    \definecolor{ansi-green}{HTML}{00A250}
+    \definecolor{ansi-green-intense}{HTML}{007427}
+    \definecolor{ansi-yellow}{HTML}{DDB62B}
+    \definecolor{ansi-yellow-intense}{HTML}{B27D12}
+    \definecolor{ansi-blue}{HTML}{208FFB}
+    \definecolor{ansi-blue-intense}{HTML}{0065CA}
+    \definecolor{ansi-magenta}{HTML}{D160C4}
+    \definecolor{ansi-magenta-intense}{HTML}{A03196}
+    \definecolor{ansi-cyan}{HTML}{60C6C8}
+    \definecolor{ansi-cyan-intense}{HTML}{258F8F}
+    \definecolor{ansi-white}{HTML}{C5C1B4}
+    \definecolor{ansi-white-intense}{HTML}{A1A6B2}
+
+    % commands and environments needed by pandoc snippets
+    % extracted from the output of `pandoc -s`
+    \providecommand{\tightlist}{%
+      \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+    % Add ',fontsize=\small' for more characters per line
+    \newenvironment{Shaded}{}{}
+    \newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{{#1}}}
+    \newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{{#1}}}}
+    \newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{{#1}}}
+    \newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{{#1}}}
+    \newcommand{\RegionMarkerTok}[1]{{#1}}
+    \newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\NormalTok}[1]{{#1}}
+    
+    % Additional commands for more recent versions of Pandoc
+    \newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{{#1}}}
+    \newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{{#1}}}
+    \newcommand{\ImportTok}[1]{{#1}}
+    \newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{{#1}}}}
+    \newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{{#1}}}
+    \newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{{#1}}}
+    \newcommand{\BuiltInTok}[1]{{#1}}
+    \newcommand{\ExtensionTok}[1]{{#1}}
+    \newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{{#1}}}
+    \newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{{#1}}}
+    \newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    
+    
+    % Define a nice break command that doesn't care if a line doesn't already
+    % exist.
+    \def\br{\hspace*{\fill} \\* }
+    % Math Jax compatability definitions
+    \def\gt{>}
+    \def\lt{<}
+    % Document parameters
+    \title{hr\_naiveBayes\_using\_caret\_package}
+    
+    
+    
+
+    % Pygments definitions
+    
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\expandafter\def\csname PY@tok@w\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\expandafter\def\csname PY@tok@c\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.74,0.48,0.00}{##1}}}
+\expandafter\def\csname PY@tok@k\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\expandafter\def\csname PY@tok@o\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@ow\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@ne\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.82,0.25,0.23}{##1}}}
+\expandafter\def\csname PY@tok@nv\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@no\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nl\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.63,0.00}{##1}}}
+\expandafter\def\csname PY@tok@ni\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.60,0.60,0.60}{##1}}}
+\expandafter\def\csname PY@tok@na\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.49,0.56,0.16}{##1}}}
+\expandafter\def\csname PY@tok@nt\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\expandafter\def\csname PY@tok@s\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sd\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@si\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\expandafter\def\csname PY@tok@se\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sr\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\expandafter\def\csname PY@tok@ss\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@sx\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@m\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@gh\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@gu\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@gd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@gi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.63,0.00}{##1}}}
+\expandafter\def\csname PY@tok@gr\endcsname{\def\PY@tc##1{\textcolor[rgb]{1.00,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@ge\endcsname{\let\PY@it=\textit}
+\expandafter\def\csname PY@tok@gs\endcsname{\let\PY@bf=\textbf}
+\expandafter\def\csname PY@tok@gp\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@go\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.53,0.53}{##1}}}
+\expandafter\def\csname PY@tok@gt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.27,0.87}{##1}}}
+\expandafter\def\csname PY@tok@err\endcsname{\def\PY@bc##1{\setlength{\fboxsep}{0pt}\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{\strut ##1}}}
+\expandafter\def\csname PY@tok@kc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kd\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kr\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@bp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@fm\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@vc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vg\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vm\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@sa\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@dl\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@s2\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@s1\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@mb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@il\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mo\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@ch\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cm\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cpf\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@c1\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cs\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZam{\char`\&}
+\def\PYZlt{\char`\<}
+\def\PYZgt{\char`\>}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZhy{\char`\-}
+\def\PYZsq{\char`\'}
+\def\PYZdq{\char`\"}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+
+
+    % Exact colors from NB
+    \definecolor{incolor}{rgb}{0.0, 0.0, 0.5}
+    \definecolor{outcolor}{rgb}{0.545, 0.0, 0.0}
+
+
+
+    
+    % Prevent overflowing lines due to hard-to-break entities
+    \sloppy 
+    % Setup hyperref package
+    \hypersetup{
+      breaklinks=true,  % so long urls are correctly broken across lines
+      colorlinks=true,
+      urlcolor=urlcolor,
+      linkcolor=linkcolor,
+      citecolor=citecolor,
+      }
+    % Slightly bigger margins than the latex defaults
+    
+    \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+    
+    
+
+    \begin{document}
+    
+    
+    \maketitle
+    
+    
+
+    
+    \hypertarget{in-this-exercise-we-will-use-the-hr-dataset-and-understand-the-following-using-caret-package}{%
+\subsection{In this exercise, we will use the HR dataset and understand
+the following using caret
+package:}\label{in-this-exercise-we-will-use-the-hr-dataset-and-understand-the-following-using-caret-package}}
+
+\begin{quote}
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Building the naive bayes model
+\item
+  What is marked as the positive class by the model when using caret
+  package
+\item
+  Writing the model equation and interpreting the model summary
+\item
+  Creating the Confusion Matrix and ROC plot on train data
+\item
+  Creating the Confusion Matrix and ROC plot on test data
+\end{enumerate}
+\end{quote}
+
+There are bugs/missing code in the entire exercise. The participants are
+expected to work upon them.
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\hypertarget{code-starts-here}{%
+\section{Code starts here}\label{code-starts-here}}
+
+We are going to use below mentioned libraries for demonstrating logistic
+regression:
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}1}]:} \PY{c+c1}{\PYZsh{}install.packages(\PYZdq{}klaR\PYZdq{}, \PYZdq{}/Users/Rahul/anaconda3/lib/R/library\PYZdq{})}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}2}]:} \PY{k+kn}{library}\PY{p}{(}caret\PY{p}{)}    \PY{c+c1}{\PYZsh{}for data partition. Model building}
+        \PY{k+kn}{library}\PY{p}{(}ROCR\PY{p}{)}     \PY{c+c1}{\PYZsh{}for ROC plot (other way)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Loading required package: lattice
+Loading required package: ggplot2
+Loading required package: gplots
+
+Attaching package: ‘gplots’
+
+The following object is masked from ‘package:stats’:
+
+    lowess
+
+
+    \end{Verbatim}
+
+    \hypertarget{data-import-and-manipulation}{%
+\subsection{Data Import and
+Manipulation}\label{data-import-and-manipulation}}
+
+\hypertarget{importing-a-data-set}{%
+\subsubsection{1. Importing a data set}\label{importing-a-data-set}}
+
+\emph{Give the correct path to the data}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}3}]:} raw\PYZus{}df \PY{o}{\PYZlt{}\PYZhy{}} read.csv\PY{p}{(}\PY{l+s}{\PYZdq{}}\PY{l+s}{/Users/Rahul/Documents/Datasets/IMB533\PYZus{}HR\PYZus{}Data\PYZus{}No\PYZus{}Missing\PYZus{}Value.csv\PYZdq{}}\PY{p}{,} header \PY{o}{=} \PY{k+kc}{TRUE}\PY{p}{,}sep \PY{o}{=} \PY{l+s}{\PYZdq{}}\PY{l+s}{,\PYZdq{}}\PY{p}{,}na.strings \PY{o}{=} \PY{k+kt}{c}\PY{p}{(}\PY{l+s}{\PYZdq{}}\PY{l+s}{\PYZdq{}}\PY{p}{,}\PY{l+s}{\PYZdq{}}\PY{l+s}{ \PYZdq{}}\PY{p}{,} \PY{l+s}{\PYZdq{}}\PY{l+s}{NA\PYZdq{}}\PY{p}{)}\PY{p}{)}
+        
+        raw\PYZus{}df\PY{p}{[}\PY{l+m}{1779}\PY{p}{,}
+              \PY{p}{]}
+\end{Verbatim}
+
+
+    \begin{tabular}{r|llllllllllllllllll}
+  & SLNO & Candidate.Ref & DOJ.Extended & Duration.to.accept.offer & Notice.period & Offered.band & Pecent.hike.expected.in.CTC & Percent.hike.offered.in.CTC & Percent.difference.CTC & Joining.Bonus & Candidate.relocate.actual & Gender & Candidate.Source & Rex.in.Yrs & LOB & Location & Age & Status\\
+\hline
+	1779 & 2653    & 2328204 & Yes     & 12      & 30      & E1      & 25      & 25      & 0       & No      & No      & Male    & Direct  & 3       & ERS     & Chennai & 27      & Joined \\
+\end{tabular}
+
+
+    
+    Note that \texttt{echo\ =\ FALSE} parameter prevents printing the R code
+that generated the plot.
+
+\hypertarget{structure-and-summary-of-the-dataset}{%
+\subsubsection{2. Structure and Summary of the
+dataset}\label{structure-and-summary-of-the-dataset}}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}4}]:} str\PY{p}{(}raw\PYZus{}df\PY{p}{)}
+        \PY{k+kp}{summary}\PY{p}{(}raw\PYZus{}df\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+'data.frame':	8995 obs. of  18 variables:
+ \$ SLNO                       : int  1 2 3 4 5 6 7 9 11 12 {\ldots}
+ \$ Candidate.Ref              : int  2110407 2112635 2112838 2115021 2115125 2117167 2119124 2127572 2138169 2143362 {\ldots}
+ \$ DOJ.Extended               : Factor w/ 2 levels "No","Yes": 2 1 1 1 2 2 2 2 1 1 {\ldots}
+ \$ Duration.to.accept.offer   : int  14 18 3 26 1 17 37 16 1 6 {\ldots}
+ \$ Notice.period              : int  30 30 45 30 120 30 30 0 30 30 {\ldots}
+ \$ Offered.band               : Factor w/ 4 levels "E0","E1","E2",..: 3 3 3 3 3 2 3 2 2 2 {\ldots}
+ \$ Pecent.hike.expected.in.CTC: num  -20.8 50 42.8 42.8 42.6 {\ldots}
+ \$ Percent.hike.offered.in.CTC: num  13.2 320 42.8 42.8 42.6 {\ldots}
+ \$ Percent.difference.CTC     : num  42.9 180 0 0 0 {\ldots}
+ \$ Joining.Bonus              : Factor w/ 2 levels "No","Yes": 1 1 1 1 1 1 1 1 1 1 {\ldots}
+ \$ Candidate.relocate.actual  : Factor w/ 2 levels "No","Yes": 1 1 1 1 2 1 1 1 1 1 {\ldots}
+ \$ Gender                     : Factor w/ 2 levels "Female","Male": 1 2 2 2 2 2 2 1 1 2 {\ldots}
+ \$ Candidate.Source           : Factor w/ 3 levels "Agency","Direct",..: 1 3 1 3 3 3 3 2 3 3 {\ldots}
+ \$ Rex.in.Yrs                 : int  7 8 4 4 6 2 7 8 3 3 {\ldots}
+ \$ LOB                        : Factor w/ 9 levels "AXON","BFSI",..: 5 8 8 8 8 8 8 7 2 3 {\ldots}
+ \$ Location                   : Factor w/ 11 levels "Ahmedabad","Bangalore",..: 9 3 9 9 9 9 9 9 5 3 {\ldots}
+ \$ Age                        : int  34 34 27 34 34 34 32 34 26 34 {\ldots}
+ \$ Status                     : Factor w/ 2 levels "Joined","Not Joined": 1 1 1 1 1 1 1 1 1 1 {\ldots}
+
+    \end{Verbatim}
+
+    
+    \begin{verbatim}
+      SLNO       Candidate.Ref     DOJ.Extended Duration.to.accept.offer
+ Min.   :    1   Min.   :2109586   No :4788     Min.   :  0.00          
+ 1st Qu.: 3208   1st Qu.:2386476   Yes:4207     1st Qu.:  3.00          
+ Median : 5976   Median :2807482                Median : 10.00          
+ Mean   : 5971   Mean   :2843647                Mean   : 21.43          
+ 3rd Qu.: 8739   3rd Qu.:3300060                3rd Qu.: 33.00          
+ Max.   :12333   Max.   :3836076                Max.   :224.00          
+                                                                        
+ Notice.period    Offered.band Pecent.hike.expected.in.CTC
+ Min.   :  0.00   E0: 211      Min.   :-68.83             
+ 1st Qu.: 30.00   E1:5568      1st Qu.: 27.27             
+ Median : 30.00   E2:2711      Median : 40.00             
+ Mean   : 39.29   E3: 505      Mean   : 43.86             
+ 3rd Qu.: 60.00                3rd Qu.: 53.85             
+ Max.   :120.00                Max.   :359.77             
+                                                          
+ Percent.hike.offered.in.CTC Percent.difference.CTC Joining.Bonus
+ Min.   :-60.53              Min.   :-67.270        No :8578     
+ 1st Qu.: 22.09              1st Qu.: -8.330        Yes: 417     
+ Median : 36.00              Median :  0.000                     
+ Mean   : 40.66              Mean   : -1.574                     
+ 3rd Qu.: 50.00              3rd Qu.:  0.000                     
+ Max.   :471.43              Max.   :300.000                     
+                                                                 
+ Candidate.relocate.actual    Gender              Candidate.Source
+ No :7705                  Female:1551   Agency           :2585   
+ Yes:1290                  Male  :7444   Direct           :4801   
+                                         Employee Referral:1609   
+                                                                  
+                                                                  
+                                                                  
+                                                                  
+   Rex.in.Yrs          LOB            Location         Age       
+ Min.   : 0.000   INFRA  :2850   Chennai  :3150   Min.   :20.00  
+ 1st Qu.: 3.000   ERS    :2426   Noida    :2727   1st Qu.:27.00  
+ Median : 4.000   BFSI   :1396   Bangalore:2230   Median :29.00  
+ Mean   : 4.239   ETS    : 691   Hyderabad: 341   Mean   :29.91  
+ 3rd Qu.: 6.000   CSMP   : 579   Mumbai   : 197   3rd Qu.:34.00  
+ Max.   :24.000   AXON   : 568   Gurgaon  : 146   Max.   :60.00  
+                  (Other): 485   (Other)  : 204                  
+        Status    
+ Joined    :7313  
+ Not Joined:1682  
+                  
+                  
+                  
+                  
+                  
+    \end{verbatim}
+
+    
+    Create a new data frame and store the raw data copy. This is being done
+to have a copy of the raw data intact for further manipulation if
+needed.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}5}]:} filter\PYZus{}df \PY{o}{\PYZlt{}\PYZhy{}} na.omit\PY{p}{(}raw\PYZus{}df\PY{p}{)} \PY{c+c1}{\PYZsh{} listwise deletion of missing}
+\end{Verbatim}
+
+
+    \hypertarget{create-train-and-test-dataset}{%
+\subsubsection{3. Create train and test
+dataset}\label{create-train-and-test-dataset}}
+
+\hypertarget{reserve-80-for-training-and-20-of-test}{%
+\paragraph{\texorpdfstring{Reserve 80\% for \textbf{\emph{training}} and
+20\% of
+\textbf{\emph{test}}}{Reserve 80\% for training and 20\% of test}}\label{reserve-80-for-training-and-20-of-test}}
+
+\emph{Correct the error in the below code chunk}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}6}]:} \PY{k+kp}{set.seed}\PY{p}{(}\PY{l+m}{2341}\PY{p}{)}
+        trainIndex \PY{o}{\PYZlt{}\PYZhy{}} createDataPartition\PY{p}{(}filter\PYZus{}df\PY{o}{\PYZdl{}}Status\PY{p}{,} p \PY{o}{=} \PY{l+m}{0.80}\PY{p}{,} \PY{k+kt}{list} \PY{o}{=} \PY{k+kc}{FALSE}\PY{p}{)}
+        train\PYZus{}df \PY{o}{\PYZlt{}\PYZhy{}} filter\PYZus{}df\PY{p}{[}trainIndex\PY{p}{,}\PY{p}{]}
+        test\PYZus{}df \PY{o}{\PYZlt{}\PYZhy{}} filter\PYZus{}df\PY{p}{[}\PY{o}{\PYZhy{}}trainIndex\PY{p}{,}\PY{p}{]}
+\end{Verbatim}
+
+
+    We can pull the specific attribute needed to build the model is another
+data frame. This agian is more of a hygine practice to not touch the
+\textbf{train} and \textbf{test} data set directly.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}7}]:} naive\PYZus{}train\PYZus{}df \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{as.data.frame}\PY{p}{(}train\PYZus{}df\PY{p}{[}\PY{p}{,}\PY{k+kt}{c}\PY{p}{(}\PY{l+s}{\PYZdq{}}\PY{l+s}{DOJ.Extended\PYZdq{}}\PY{p}{,}
+                                                     \PY{l+s}{\PYZdq{}}\PY{l+s}{Duration.to.accept.offer\PYZdq{}}\PY{p}{,}
+                                                     \PY{c+c1}{\PYZsh{}\PYZdq{}Notice.period\PYZdq{},}
+                                                     \PY{l+s}{\PYZdq{}}\PY{l+s}{Offered.band\PYZdq{}}\PY{p}{,}
+                                                     \PY{c+c1}{\PYZsh{}\PYZdq{}Percent.difference.CTC\PYZdq{},}
+                                                     \PY{c+c1}{\PYZsh{}\PYZdq{}Joining.Bonus\PYZdq{},}
+                                                     \PY{c+c1}{\PYZsh{}\PYZdq{}Gender\PYZdq{},}
+                                                     \PY{c+c1}{\PYZsh{}\PYZdq{}Candidate.Source\PYZdq{},}
+                                                     \PY{c+c1}{\PYZsh{}\PYZdq{}Rex.in.Yrs\PYZdq{},}
+                                                     \PY{l+s}{\PYZdq{}}\PY{l+s}{LOB\PYZdq{}}\PY{p}{,}
+                                                     \PY{c+c1}{\PYZsh{}\PYZdq{}Location\PYZdq{},}
+                                                     \PY{c+c1}{\PYZsh{}\PYZdq{}Age\PYZdq{},}
+                                                     \PY{l+s}{\PYZdq{}}\PY{l+s}{Status\PYZdq{}}
+        \PY{p}{)}\PY{p}{]}\PY{p}{)}
+\end{Verbatim}
+
+
+    \emph{Correct the error in the below code chunk}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}8}]:} naive\PYZus{}test\PYZus{}df \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{as.data.frame}\PY{p}{(}test\PYZus{}df\PY{p}{[}\PY{p}{,}\PY{k+kt}{c}\PY{p}{(}\PY{l+s}{\PYZdq{}}\PY{l+s}{DOJ.Extended\PYZdq{}}\PY{p}{,}
+                                                   \PY{l+s}{\PYZdq{}}\PY{l+s}{Duration.to.accept.offer\PYZdq{}}\PY{p}{,}
+                                                   \PY{c+c1}{\PYZsh{}\PYZdq{}Notice.period\PYZdq{},}
+                                                   \PY{l+s}{\PYZdq{}}\PY{l+s}{Offered.band\PYZdq{}}\PY{p}{,}
+                                                   \PY{c+c1}{\PYZsh{}\PYZdq{}Percent.difference.CTC\PYZdq{},}
+                                                   \PY{c+c1}{\PYZsh{}\PYZdq{}Joining.Bonus\PYZdq{},}
+                                                   \PY{c+c1}{\PYZsh{}\PYZdq{}Gender\PYZdq{},}
+                                                   \PY{c+c1}{\PYZsh{}\PYZdq{}Candidate.Source\PYZdq{},}
+                                                   \PY{c+c1}{\PYZsh{}\PYZdq{}Rex.in.Yrs\PYZdq{},}
+                                                   \PY{l+s}{\PYZdq{}}\PY{l+s}{LOB\PYZdq{}}\PY{p}{,}
+                                                   \PY{c+c1}{\PYZsh{}\PYZdq{}Location\PYZdq{},}
+                                                   \PY{c+c1}{\PYZsh{}\PYZdq{}Age\PYZdq{},}
+                                                   \PY{l+s}{\PYZdq{}}\PY{l+s}{Status\PYZdq{}}
+        \PY{p}{)}\PY{p}{]}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\hypertarget{model-building-using-the-caret-package}{%
+\subsection{\texorpdfstring{Model Building: Using the \textbf{caret()}
+package}{Model Building: Using the caret() package}}\label{model-building-using-the-caret-package}}
+
+There are a number of models which can be built using caret package. To
+get the names of all the models possible.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}9}]:} \PY{k+kp}{names}\PY{p}{(}getModelInfo\PY{p}{(}\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{enumerate*}
+\item 'ada'
+\item 'AdaBag'
+\item 'AdaBoost.M1'
+\item 'adaboost'
+\item 'amdai'
+\item 'ANFIS'
+\item 'avNNet'
+\item 'awnb'
+\item 'awtan'
+\item 'bag'
+\item 'bagEarth'
+\item 'bagEarthGCV'
+\item 'bagFDA'
+\item 'bagFDAGCV'
+\item 'bam'
+\item 'bartMachine'
+\item 'bayesglm'
+\item 'binda'
+\item 'blackboost'
+\item 'blasso'
+\item 'blassoAveraged'
+\item 'bridge'
+\item 'brnn'
+\item 'BstLm'
+\item 'bstSm'
+\item 'bstTree'
+\item 'C5.0'
+\item 'C5.0Cost'
+\item 'C5.0Rules'
+\item 'C5.0Tree'
+\item 'cforest'
+\item 'chaid'
+\item 'CSimca'
+\item 'ctree'
+\item 'ctree2'
+\item 'cubist'
+\item 'dda'
+\item 'deepboost'
+\item 'DENFIS'
+\item 'dnn'
+\item 'dwdLinear'
+\item 'dwdPoly'
+\item 'dwdRadial'
+\item 'earth'
+\item 'elm'
+\item 'enet'
+\item 'evtree'
+\item 'extraTrees'
+\item 'fda'
+\item 'FH.GBML'
+\item 'FIR.DM'
+\item 'foba'
+\item 'FRBCS.CHI'
+\item 'FRBCS.W'
+\item 'FS.HGD'
+\item 'gam'
+\item 'gamboost'
+\item 'gamLoess'
+\item 'gamSpline'
+\item 'gaussprLinear'
+\item 'gaussprPoly'
+\item 'gaussprRadial'
+\item 'gbm\_h2o'
+\item 'gbm'
+\item 'gcvEarth'
+\item 'GFS.FR.MOGUL'
+\item 'GFS.LT.RS'
+\item 'GFS.THRIFT'
+\item 'glm.nb'
+\item 'glm'
+\item 'glmboost'
+\item 'glmnet\_h2o'
+\item 'glmnet'
+\item 'glmStepAIC'
+\item 'gpls'
+\item 'hda'
+\item 'hdda'
+\item 'hdrda'
+\item 'HYFIS'
+\item 'icr'
+\item 'J48'
+\item 'JRip'
+\item 'kernelpls'
+\item 'kknn'
+\item 'knn'
+\item 'krlsPoly'
+\item 'krlsRadial'
+\item 'lars'
+\item 'lars2'
+\item 'lasso'
+\item 'lda'
+\item 'lda2'
+\item 'leapBackward'
+\item 'leapForward'
+\item 'leapSeq'
+\item 'Linda'
+\item 'lm'
+\item 'lmStepAIC'
+\item 'LMT'
+\item 'loclda'
+\item 'logicBag'
+\item 'LogitBoost'
+\item 'logreg'
+\item 'lssvmLinear'
+\item 'lssvmPoly'
+\item 'lssvmRadial'
+\item 'lvq'
+\item 'M5'
+\item 'M5Rules'
+\item 'manb'
+\item 'mda'
+\item 'Mlda'
+\item 'mlp'
+\item 'mlpKerasDecay'
+\item 'mlpKerasDecayCost'
+\item 'mlpKerasDropout'
+\item 'mlpKerasDropoutCost'
+\item 'mlpML'
+\item 'mlpSGD'
+\item 'mlpWeightDecay'
+\item 'mlpWeightDecayML'
+\item 'monmlp'
+\item 'msaenet'
+\item 'multinom'
+\item 'mxnet'
+\item 'mxnetAdam'
+\item 'naive\_bayes'
+\item 'nb'
+\item 'nbDiscrete'
+\item 'nbSearch'
+\item 'neuralnet'
+\item 'nnet'
+\item 'nnls'
+\item 'nodeHarvest'
+\item 'null'
+\item 'OneR'
+\item 'ordinalNet'
+\item 'ORFlog'
+\item 'ORFpls'
+\item 'ORFridge'
+\item 'ORFsvm'
+\item 'ownn'
+\item 'pam'
+\item 'parRF'
+\item 'PART'
+\item 'partDSA'
+\item 'pcaNNet'
+\item 'pcr'
+\item 'pda'
+\item 'pda2'
+\item 'penalized'
+\item 'PenalizedLDA'
+\item 'plr'
+\item 'pls'
+\item 'plsRglm'
+\item 'polr'
+\item 'ppr'
+\item 'PRIM'
+\item 'protoclass'
+\item 'pythonKnnReg'
+\item 'qda'
+\item 'QdaCov'
+\item 'qrf'
+\item 'qrnn'
+\item 'randomGLM'
+\item 'ranger'
+\item 'rbf'
+\item 'rbfDDA'
+\item 'Rborist'
+\item 'rda'
+\item 'regLogistic'
+\item 'relaxo'
+\item 'rf'
+\item 'rFerns'
+\item 'RFlda'
+\item 'rfRules'
+\item 'ridge'
+\item 'rlda'
+\item 'rlm'
+\item 'rmda'
+\item 'rocc'
+\item 'rotationForest'
+\item 'rotationForestCp'
+\item 'rpart'
+\item 'rpart1SE'
+\item 'rpart2'
+\item 'rpartCost'
+\item 'rpartScore'
+\item 'rqlasso'
+\item 'rqnc'
+\item 'RRF'
+\item 'RRFglobal'
+\item 'rrlda'
+\item 'RSimca'
+\item 'rvmLinear'
+\item 'rvmPoly'
+\item 'rvmRadial'
+\item 'SBC'
+\item 'sda'
+\item 'sdwd'
+\item 'simpls'
+\item 'SLAVE'
+\item 'slda'
+\item 'smda'
+\item 'snn'
+\item 'sparseLDA'
+\item 'spikeslab'
+\item 'spls'
+\item 'stepLDA'
+\item 'stepQDA'
+\item 'superpc'
+\item 'svmBoundrangeString'
+\item 'svmExpoString'
+\item 'svmLinear'
+\item 'svmLinear2'
+\item 'svmLinear3'
+\item 'svmLinearWeights'
+\item 'svmLinearWeights2'
+\item 'svmPoly'
+\item 'svmRadial'
+\item 'svmRadialCost'
+\item 'svmRadialSigma'
+\item 'svmRadialWeights'
+\item 'svmSpectrumString'
+\item 'tan'
+\item 'tanSearch'
+\item 'treebag'
+\item 'vbmpRadial'
+\item 'vglmAdjCat'
+\item 'vglmContRatio'
+\item 'vglmCumulative'
+\item 'widekernelpls'
+\item 'WM'
+\item 'wsrf'
+\item 'xgbDART'
+\item 'xgbLinear'
+\item 'xgbTree'
+\item 'xyf'
+\end{enumerate*}
+
+
+    
+    To get the info on specific model:
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}10}]:} getModelInfo\PY{p}{(}\PY{p}{)}\PY{o}{\PYZdl{}}glm\PY{o}{\PYZdl{}}type
+\end{Verbatim}
+
+
+    \begin{enumerate*}
+\item 'Regression'
+\item 'Classification'
+\end{enumerate*}
+
+
+    
+    The below chunk of code is standarized way of building model using caret
+package. Setting in the control parameters for the model.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}11}]:} \PY{k+kp}{set.seed}\PY{p}{(}\PY{l+m}{1234}\PY{p}{)}
+         objControl \PY{o}{\PYZlt{}\PYZhy{}} trainControl\PY{p}{(}method \PY{o}{=} \PY{l+s}{\PYZdq{}}\PY{l+s}{cv\PYZdq{}}\PY{p}{,} number \PY{o}{=} \PY{l+m}{2}\PY{p}{,} returnResamp \PY{o}{=} \PY{l+s}{\PYZsq{}}\PY{l+s}{none\PYZsq{}}\PY{p}{,}
+                                    summaryFunction \PY{o}{=} twoClassSummary\PY{p}{,}
+                                    \PY{c+c1}{\PYZsh{}summaryFunction = twoClassSummary, defaultSummary}
+                                    classProbs \PY{o}{=} \PY{k+kc}{TRUE}\PY{p}{,}
+                                    savePredictions \PY{o}{=} \PY{k+kc}{TRUE}\PY{p}{)}
+\end{Verbatim}
+
+
+    The search grid is basically a model fine tuning option. The paramter
+inside the \textbf{expan.grid()} function varies according to model. The
+\textbf{\href{http://topepo.github.io/caret/available-models.html}{complete}}
+list of tuning paramter for different models.
+
+A useful read on how numeric variables are taken care of by kernal
+density function is here: http://uc-r.github.io/naive\_bayes
+
+\begin{quote}
+\begin{itemize}
+\tightlist
+\item
+  usekernel parameter allows us to use a kernel density estimate for
+  continuous variables versus a guassian density estimate,
+\item
+  adjust allows us to adjust the bandwidth of the kernel density (larger
+  numbers mean more flexible density estimate),
+\item
+  fL allows us to incorporate the Laplace smoother
+\end{itemize}
+\end{quote}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}12}]:} \PY{c+c1}{\PYZsh{}This parameter is for glmnet. Need not be executed if method  is glmStepAIC}
+         searchGrid \PY{o}{\PYZlt{}\PYZhy{}}  \PY{k+kp}{expand.grid}\PY{p}{(}usekernel\PY{o}{=}\PY{k+kt}{c}\PY{p}{(}\PY{k+kc}{TRUE}\PY{p}{)}\PY{p}{,} fL \PY{o}{=} \PY{k+kt}{c}\PY{p}{(}\PY{l+m}{1}\PY{o}{:}\PY{l+m}{5}\PY{p}{)}\PY{p}{,} adjust\PY{o}{=}\PY{k+kt}{c}\PY{p}{(}\PY{l+m}{1}\PY{o}{:}\PY{l+m}{5}\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+
+
+    The model building starts here. \textgreater{} 1. \textbf{metric=
+``ROC''} uses ROC curve to select the best model.Accuracy, Kappa are
+other options. To use this change twoClassSummary to defaultSummary in
+\textbf{ObjControl} 2. \textbf{verbose = FALSE}: does not show the
+processing output on console
+
+The factor names at times may not be consistent. R may expect
+\textbf{``Not.Joined''} but the actual level may be \textbf{``Not
+Joined''} This is corrected by using \textbf{make.names()} function to
+give syntactically valid names.
+
+In case of large number of predictors and particularly (numeric
+predicators), the naive bayes (with kernal density estimation) may end
+up giving warning messages
+\texttt{Numerical\ 0\ probability\ for\ all\ classes\ with\ observation...}.
+
+Please refer to the post to know about the issue:
+https://github.com/topepo/caret/issues/793
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}13}]:} \PY{c+c1}{\PYZsh{}naive\PYZus{}train\PYZus{}df\PYZdl{}StatusFactor \PYZlt{}\PYZhy{} as.factor(ifelse(naive\PYZus{}train\PYZus{}df\PYZdl{}Status == \PYZdq{}Joined\PYZdq{}, 1,0))}
+         \PY{k+kp}{set.seed}\PY{p}{(}\PY{l+m}{766}\PY{p}{)}
+         \PY{k+kp}{levels}\PY{p}{(}naive\PYZus{}train\PYZus{}df\PY{o}{\PYZdl{}}Status\PY{p}{)} \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{make.names}\PY{p}{(}\PY{k+kp}{levels}\PY{p}{(}\PY{k+kp}{factor}\PY{p}{(}naive\PYZus{}train\PYZus{}df\PY{o}{\PYZdl{}}Status\PY{p}{)}\PY{p}{)}\PY{p}{)}
+         naive\PYZus{}caret\PYZus{}model \PY{o}{\PYZlt{}\PYZhy{}} train\PY{p}{(}naive\PYZus{}train\PYZus{}df\PY{p}{[}\PY{p}{,}\PY{l+m}{1}\PY{o}{:}\PY{l+m}{4}\PY{p}{]}\PY{p}{,}
+                               naive\PYZus{}train\PYZus{}df\PY{p}{[}\PY{p}{,}\PY{l+m}{5}\PY{p}{]}\PY{p}{,}
+                               method \PY{o}{=} \PY{l+s}{\PYZsq{}}\PY{l+s}{nb\PYZsq{}}\PY{p}{,} \PY{c+c1}{\PYZsh{}\PYZsq{}glm\PYZsq{}, glmnet}
+                               trControl \PY{o}{=} objControl\PY{p}{,}
+                               tuneGrid\PY{o}{=} searchGrid\PY{p}{,}
+                               metric \PY{o}{=} \PY{l+s}{\PYZdq{}}\PY{l+s}{ROC\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+
+
+    \hypertarget{model-evaluation}{%
+\subsection{Model Evaluation}\label{model-evaluation}}
+
+\hypertarget{one-useful-plot-from-caret-package-is-the-variable-importance-plot}{%
+\subsubsection{1. One useful plot from caret package is the variable
+importance
+plot}\label{one-useful-plot-from-caret-package-is-the-variable-importance-plot}}
+
+In case you get an error ``Invalid Graphic state'', uncomment the line
+below
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}14}]:} naive\PYZus{}caret\PYZus{}model
+         \PY{k+kp}{summary}\PY{p}{(}naive\PYZus{}caret\PYZus{}model\PY{o}{\PYZdl{}}finalModel\PY{p}{)}
+         
+         \PY{c+c1}{\PYZsh{}dev.off()}
+         \PY{c+c1}{\PYZsh{}plot(varImp(naive\PYZus{}caret\PYZus{}model, scale = TRUE))}
+\end{Verbatim}
+
+
+    
+    \begin{verbatim}
+Naive Bayes 
+
+7197 samples
+   4 predictor
+   2 classes: 'Joined', 'Not.Joined' 
+
+No pre-processing
+Resampling: Cross-Validated (2 fold) 
+Summary of sample sizes: 3598, 3599 
+Resampling results across tuning parameters:
+
+  fL  adjust  ROC        Sens       Spec       
+  1   1       0.6128812  0.9976074  0.026002972
+  1   2       0.5966586  0.9984618  0.021545319
+  1   3       0.5848701  0.9988036  0.013372957
+  1   4       0.5834954  0.9989745  0.006686478
+  1   5       0.5852380  0.9993164  0.004457652
+  2   1       0.6126230  0.9976074  0.026002972
+  2   2       0.5956725  0.9982909  0.021545319
+  2   3       0.5836627  0.9988036  0.013372957
+  2   4       0.5827498  0.9989745  0.006686478
+  2   5       0.5845042  0.9993164  0.004457652
+  3   1       0.6125996  0.9976074  0.026002972
+  3   2       0.5954838  0.9982909  0.022288262
+  3   3       0.5835337  0.9988036  0.014858841
+  3   4       0.5825063  0.9989745  0.006686478
+  3   5       0.5844353  0.9993164  0.004457652
+  4   1       0.6127178  0.9974365  0.026002972
+  4   2       0.5957735  0.9982909  0.022288262
+  4   3       0.5837206  0.9986327  0.015601783
+  4   4       0.5827699  0.9988036  0.008172363
+  4   5       0.5846573  0.9991455  0.004457652
+  5   1       0.6129023  0.9974365  0.026002972
+  5   2       0.5957690  0.9981201  0.022288262
+  5   3       0.5841314  0.9986327  0.015601783
+  5   4       0.5828613  0.9988036  0.008172363
+  5   5       0.5848873  0.9991455  0.005200594
+
+Tuning parameter 'usekernel' was held constant at a value of TRUE
+ROC was used to select the optimal model using the largest value.
+The final values used for the model were fL = 5, usekernel = TRUE and adjust
+ = 1.
+    \end{verbatim}
+
+    
+    
+    \begin{verbatim}
+            Length Class      Mode     
+apriori     2      table      numeric  
+tables      4      -none-     list     
+levels      2      -none-     character
+call        6      -none-     call     
+x           4      data.frame list     
+usekernel   1      -none-     logical  
+varnames    4      -none-     character
+xNames      4      -none-     character
+problemType 1      -none-     character
+tuneValue   3      data.frame list     
+obsLevels   2      -none-     character
+param       0      -none-     list     
+    \end{verbatim}
+
+    
+    \hypertarget{the-prediction-and-confusion-matrix-on-train-data.}{%
+\subsubsection{2. The prediction and confusion Matrix on train
+data.}\label{the-prediction-and-confusion-matrix-on-train-data.}}
+
+The syntax for prediction in caret is almost similar expect the the
+\textbf{type} attribute expects input as \textbf{`raw'} or
+\textbf{`prob'}. In case of prob, the predicted value holds the
+probability of both positive and negative class.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}15}]:} \PY{c+c1}{\PYZsh{}Missing code. May result in error}
+         \PY{k+kp}{levels}\PY{p}{(}naive\PYZus{}train\PYZus{}df\PY{o}{\PYZdl{}}Status\PY{p}{)} \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{make.names}\PY{p}{(}\PY{k+kp}{levels}\PY{p}{(}\PY{k+kp}{factor}\PY{p}{(}naive\PYZus{}train\PYZus{}df\PY{o}{\PYZdl{}}Status\PY{p}{)}\PY{p}{)}\PY{p}{)}
+         caretPredictedClass \PY{o}{\PYZlt{}\PYZhy{}} predict\PY{p}{(}object \PY{o}{=} naive\PYZus{}caret\PYZus{}model\PY{p}{,} naive\PYZus{}train\PYZus{}df\PY{p}{[}\PY{p}{,}\PY{l+m}{1}\PY{o}{:}\PY{l+m}{4}\PY{p}{]}\PY{p}{,} type \PY{o}{=} \PY{l+s}{\PYZsq{}}\PY{l+s}{raw\PYZsq{}}\PY{p}{)}
+         confusionMatrix\PY{p}{(}caretPredictedClass\PY{p}{,}naive\PYZus{}train\PYZus{}df\PY{o}{\PYZdl{}}Status\PY{p}{)}
+\end{Verbatim}
+
+
+    
+    \begin{verbatim}
+Confusion Matrix and Statistics
+
+            Reference
+Prediction   Joined Not.Joined
+  Joined       5838       1310
+  Not.Joined     13         36
+                                         
+               Accuracy : 0.8162         
+                 95% CI : (0.807, 0.8251)
+    No Information Rate : 0.813          
+    P-Value [Acc > NIR] : 0.2487         
+                                         
+                  Kappa : 0.039          
+ Mcnemar's Test P-Value : <2e-16         
+                                         
+            Sensitivity : 0.99778        
+            Specificity : 0.02675        
+         Pos Pred Value : 0.81673        
+         Neg Pred Value : 0.73469        
+             Prevalence : 0.81298        
+         Detection Rate : 0.81117        
+   Detection Prevalence : 0.99319        
+      Balanced Accuracy : 0.51226        
+                                         
+       'Positive' Class : Joined         
+                                         
+    \end{verbatim}
+
+    
+    \hypertarget{confusion-matrix-on-the-test-data}{%
+\subsubsection{4. Confusion Matrix on the test
+data}\label{confusion-matrix-on-the-test-data}}
+
+The \textbf{predict} function is used to get the predicted probability
+on the new dataset. The probability value along with the optimal cut-off
+can be used to build confusion matrix
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}16}]:} test\PYZus{}predicted\PYZus{}prob \PY{o}{=} predict\PY{p}{(}naive\PYZus{}caret\PYZus{}model\PY{p}{,} naive\PYZus{}test\PYZus{}df\PY{p}{,} type \PY{o}{=} \PY{l+s}{\PYZdq{}}\PY{l+s}{prob\PYZdq{}}\PY{p}{)}
+         
+         \PY{c+c1}{\PYZsh{}variable with all the values as joined}
+         n \PY{o}{\PYZlt{}\PYZhy{}} \PY{k+kp}{length}\PY{p}{(}naive\PYZus{}test\PYZus{}df\PY{o}{\PYZdl{}}Status\PY{p}{)}
+         predicted\PYZus{}y \PY{o}{=} \PY{k+kp}{rep}\PY{p}{(}\PY{l+s}{\PYZdq{}}\PY{l+s}{Not Joined\PYZdq{}}\PY{p}{,} n\PY{p}{)}
+         
+         \PY{c+c1}{\PYZsh{} defining log odds in favor of not joining}
+         predicted\PYZus{}y\PY{p}{[}test\PYZus{}predicted\PYZus{}prob\PY{p}{[}\PY{l+m}{1}\PY{p}{]} \PY{o}{\PYZgt{}} test\PYZus{}predicted\PYZus{}prob\PY{p}{[}\PY{l+m}{2}\PY{p}{]]} \PY{o}{=} \PY{l+s}{\PYZdq{}}\PY{l+s}{Joined\PYZdq{}}
+         
+         \PY{c+c1}{\PYZsh{}add the model\PYZus{}precition in the data}
+         naive\PYZus{}test\PYZus{}df\PY{o}{\PYZdl{}}predicted\PYZus{}y \PY{o}{\PYZlt{}\PYZhy{}} predicted\PYZus{}y
+         
+         \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}Create the confusionmatrix\PYZsh{}\PYZsh{}\PYZsh{}}
+         addmargins\PY{p}{(}\PY{k+kp}{table}\PY{p}{(}naive\PYZus{}test\PYZus{}df\PY{o}{\PYZdl{}}Status\PY{p}{,} naive\PYZus{}test\PYZus{}df\PY{o}{\PYZdl{}}predicted\PYZus{}y\PY{p}{)}\PY{p}{)}
+         \PY{k+kp}{mean}\PY{p}{(}naive\PYZus{}test\PYZus{}df\PY{o}{\PYZdl{}}predicted\PYZus{}y \PY{o}{==} naive\PYZus{}test\PYZus{}df\PY{o}{\PYZdl{}}Status\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Warning message in FUN(X[[i]], {\ldots}):
+“Numerical 0 probability for all classes with observation 1317”
+    \end{Verbatim}
+
+    \begin{tabular}{r|lll}
+  & Joined & Not Joined & Sum\\
+\hline
+	Joined & 1458 &  4   & 1462\\
+	Not Joined &  328 &  8   &  336\\
+	Sum & 1786 & 12   & 1798\\
+\end{tabular}
+
+
+    
+    0.815350389321468
+
+    
+    \hypertarget{roc-plot-on-the-test-data}{%
+\subsubsection{5. ROC Plot on the test
+data}\label{roc-plot-on-the-test-data}}
+
+ROCR package can be used to evaluate the model performace on the test
+data. The same package can also be used to get the model performace on
+the test data.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}17}]:} \PY{c+c1}{\PYZsh{}error in below line}
+         lgPredObj \PY{o}{\PYZlt{}\PYZhy{}} prediction\PY{p}{(}test\PYZus{}predicted\PYZus{}prob\PY{p}{[}\PY{l+m}{2}\PY{p}{]}\PY{p}{,}naive\PYZus{}test\PYZus{}df\PY{o}{\PYZdl{}}Status\PY{p}{)}
+         lgPerfObj \PY{o}{\PYZlt{}\PYZhy{}} performance\PY{p}{(}lgPredObj\PY{p}{,} \PY{l+s}{\PYZdq{}}\PY{l+s}{tpr\PYZdq{}}\PY{p}{,}\PY{l+s}{\PYZdq{}}\PY{l+s}{fpr\PYZdq{}}\PY{p}{)}
+         plot\PY{p}{(}lgPerfObj\PY{p}{,}main \PY{o}{=} \PY{l+s}{\PYZdq{}}\PY{l+s}{ROC Curve\PYZdq{}}\PY{p}{,}col \PY{o}{=} \PY{l+m}{2}\PY{p}{,}lwd \PY{o}{=} \PY{l+m}{2}\PY{p}{)}
+         abline\PY{p}{(}a \PY{o}{=} \PY{l+m}{0}\PY{p}{,}b \PY{o}{=} \PY{l+m}{1}\PY{p}{,}lwd \PY{o}{=} \PY{l+m}{2}\PY{p}{,}lty \PY{o}{=} \PY{l+m}{3}\PY{p}{,}col \PY{o}{=} \PY{l+s}{\PYZdq{}}\PY{l+s}{black\PYZdq{}}\PY{p}{)}
+         performance\PY{p}{(}lgPredObj\PY{p}{,} \PY{l+s}{\PYZdq{}}\PY{l+s}{auc\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+
+
+    
+    \begin{verbatim}
+An object of class "performance"
+Slot "x.name":
+[1] "None"
+
+Slot "y.name":
+[1] "Area under the ROC curve"
+
+Slot "alpha.name":
+[1] "none"
+
+Slot "x.values":
+list()
+
+Slot "y.values":
+[[1]]
+[1] 0.6102809
+
+
+Slot "alpha.values":
+list()
+
+    \end{verbatim}
+
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_32_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \hypertarget{end-of-document}{%
+\paragraph{End of Document}\label{end-of-document}}
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+
+    % Add a bibliography block to the postdoc
+    
+    
+    
+    \end{document}
