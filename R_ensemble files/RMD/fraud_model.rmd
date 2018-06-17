@@ -1,0 +1,1246 @@
+---
+author: Kumar Rahul
+date: 20 September 2016
+output: word_document
+title: Analysis of the Company Financial Manipulations
+---
+
+# Earnings Manipulation
+
+## By Kumar Rahul
+
+The analysis is on company financial manipulations and devise algorithm to identify a manipulater from a non manipulater based on the financial ratios reported by the companies. There are a total of 1239 observations in the data set. Out of these 1239 observations, there are 1200 non manipulaters and 39 manipulaters.
+
+> 1. [Look](http://topepo.github.io/caret/train-models-by-tag.html) for different types of model which can be built using R. Also has a guideline for fine tuning paramters
+> 2. Refer [link](http://stats.stackexchange.com/questions/163799/training-a-random-forest-in-r-with-a-maximum-false-positive-rate) to know random forest and [Refer](http://stackoverflow.com/questions/18541923/what-is-out-of-bag-error-in-random-forests) to know about OOB error
+> 3. [Demonstration](https://rpubs.com/chengjiun/52658) of some of the bagging and boosting algorithm
+> 4. [Understand](https://www.r-bloggers.com/improve-predictive-performance-in-r-with-bagging/) the logic for bagging in logistic regression
+> 5. [Interpret](http://stackoverflow.com/questions/14996619/random-forest-output-interpretation) the tree structure generated out of random forest model
+
+***
+
+Not all the packages are available for installation through anaconda r-essentials. To install the packages which are not available through anaconda framework, use the below code chunk:
+
+```{r}
+#install.packages("inTrees", "/Users/Rahul/anaconda3/lib/R/library")
+#install.packages("DMwR", "/Users/Rahul/anaconda3/lib/R/library")
+#install.packages("UBL", "/Users/Rahul/anaconda3/lib/R/library")
+#install.packages("adabag", "/Users/Rahul/anaconda3/lib/R/library")
+#install.packages("tictoc", "/Users/Rahul/anaconda3/lib/R/library")
+#install.packages("doMC", "/Users/Rahul/anaconda3/lib/R/library")
+```
+
+```{r include=FALSE}
+library(caret)          #for split and model accuracy
+library(DMwR)           #for SMOTE Sampling
+library(randomForest)
+library(ROCR)           #for ROC Plot
+library(e1071)
+library(xgboost)        #to implement xgbTree
+#library(rattle)        #print the business rules for the model
+library(inTrees)        #to extract the business rules from rf model
+library(UBL)
+library(tictoc)         #to record the time elapsed
+library(parallel)
+library(doParallel)
+library(doMC)
+setwd("/Users/Rahul/Documents/Rahul Office/IIMB/Work @ IIMB/Company Fraud")
+```
+
+## Preparing data
+
+#### Read data from a specified location
+
+```{r echo=TRUE}
+raw_data <- read.csv("/Users/Rahul/Documents/Rahul Office/IIMB/Work @ IIMB/Company Fraud/fraud_data.csv",
+                     head=TRUE,na.strings=c("", " ", "NA"), sep=",")
+
+filter_data <- raw_data[,-c(1)]
+```
+
+#### Define an 70%/30% train/test split of the dataset
+
+```{r}
+set.seed(4121)
+trainIndex <- createDataPartition(filter_data$Manipulater, p = 0.70, list=FALSE)
+train_df <- filter_data[ trainIndex,]
+test_df <- filter_data[-trainIndex,]
+```
+
+#### Prepare and run numerical summaries
+
+```{r}
+summary(train_df) #summary of the data
+train_df <- na.omit(train_df) # listwise deletion of missing
+test_df <- na.omit(test_df) # listwise deletion of missing
+```
+
+#### Train and test dataset with needed variables
+
+```{r}
+model_df <- as.data.frame(filter_data[,c(#"DSRI",
+                                       #"GMI",
+                                       "AQI",
+                                       #"SGI",
+                                       "DEPI",
+                                       "SGAI",
+                                       "ACCR",
+                                       "LEVI",
+                                       "Manipulater"
+)])
+
+model_train_df <- as.data.frame(train_df[,c(#"DSRI",
+                                          #"GMI",
+                                          "AQI",
+                                          #"SGI",
+                                          "DEPI",
+                                          "SGAI",
+                                          "ACCR",
+                                          "LEVI",
+                                          "Manipulater"
+)])
+
+model_test_df <- as.data.frame(test_df[,c(#"DSRI",
+                                        #"GMI",
+                                        "AQI",
+                                        #"SGI",
+                                        "DEPI",
+                                        "SGAI",
+                                        "ACCR",
+                                        "LEVI",
+                                        "Manipulater"
+)])
+```
+
+#### Corelation amongst variable
+
+The below chunk of code will show the co-relation if any between the numerical variables. The function **highlyCorelated()** shows the variables which are corelated with an absolute corelation of more than 0.6. In this case there are no variables which are highly corelated.
+
+```{r corMatrix, echo=TRUE, tidy=TRUE, warning=FALSE}
+correlation_matrix <- cor(model_df[,c(1:5)])
+print(correlation_matrix)
+# find attributes that are highly corrected (ideally >0.7)
+highly_correlated <- findCorrelation(correlation_matrix, cutoff = 0.6, names = TRUE)
+print(highly_correlated)
+```
+
+## Caret Package
+
+**caret** is a useful and a robust package which helps to set a generic framework to implement any kind of model in R. Some of the algorithm's which can be implemented using caret package are:
+
+```{r echo=TRUE}
+names(getModelInfo())
+
+#getModelInfo()$glm
+```
+
+## Bagging Model
+
+Bagging is the process of taking bootstrap sample and then aggreagting the model learned on each sample. Each of the models are trained independently on the N observations picked randomly from N observations in the original dataset (with replacement). The models can be trained parallely as the training is based on independent samples. Since models are trained on different but overlapping samples of the original data, the predictions from different models will be different.
+
+### Bagging models in R
+
+The  algorithms in bagging are:
+
+> 1. Bagged Adaboost: **_adabag()_** Required Package is **adabag, plyr**
+2. Bagged CART: **_treebag()_** Required Package is **ipred, e1071, plyr**
+3. Bagged Flexible Discriminant Analysis: **_bagFDA()_** Required Package is **earth, mda**
+4. Bagged Logic Regression: **_logicBag()_** Required Package is **logicFS**
+5. Bagged MARS: **_bagEarth()_** Required Package is **earth**
+6. Bagged Model: **_bag()_** Required Package is **caret**
+7. Ensemble of Generalized Linear Models: **_randomGLM()_** Required Package is **randomGLM**
+8. Model Averaged Neural Network: **_avNNET()_** Required Package is **nnet**
+9. Quantile Regression Neural Network: **_qrnn()_** Required Package is **qrnn**
+10. Random Ferns: **_rFerns()_** Required Package is **rFerns**
+
+_The below methods are all applicable to implement random forest as a bagging algorithm:_
+
+> 11. Parallel Random Forest: **_parRF()_** Required Package is **e1071, randomForest, foreach**
+12. Quantile Random Forest: **_qrf()_** Required Package is **quantregForest**
+13. Conditional Inference Random Forest: **_cforest()_** Required Package is **party**
+14. Random Forest: **_ranger()_** Required Package is **e1071, ranger**
+15. Random Forest: **_Rborist()_** Required Package is **Rborist**
+16. Random Forest: **_rf()_** Required Package is **randomForest**
+17. Random Forest by Randomization: **_extraTrees()_** Required Package is **extraTrees**
+18. Random Forest rule based Model: **_rfRules()_** Required Package is **randomForest, inTrees, plyr**
+19. Regularized Random Forest: **_RRF()_** Required Package is **randomForest, RRF**
+20. Regularized Random Forest: **_RRFglobal()_** Required Package is **RRF**
+21. Weighted Subspace Random Forest: **_wsrf()_** Required Package is **wsrf**
+
+
+###Random Forest with bootstrap sampling
+Random forests is one of the algorithm which uses bagging as a technique. In the below code chunk we will use bootstrap sampling to implement bagging using rf method. This means that if there are 100 observations in a training dataset the resulting sample will select 100 samples with replacement.
+
+The below code chunk sets some of the control parameters
+
+```{r}
+tic("Total Time for Bagging and Boosting")
+```
+
+```{r echo=TRUE, warning=FALSE}
+objControl <- trainControl(method='boot', number = 1,
+                           returnResamp='none',
+                           summaryFunction = twoClassSummary,
+                           savePredictions = TRUE,
+                           classProbs = TRUE,allowParallel=TRUE)
+```
+
+After setting the control paramters, the model is run
+
+```{r}
+num_cores <- makeCluster(detectCores()-5)
+num_cores
+```
+
+```{r echo=TRUE}
+num_cores <- makeCluster(detectCores()-5)
+registerDoParallel(num_cores)
+tic("RF Bagging with Bootstrap Sample")
+
+set.seed(4121)
+rf_bootstrap_model <- train(model_train_df[,1:5], model_train_df[,6],
+                  method='rf',
+                  trControl=objControl, ntree = 500,
+                  metric = "ROC")
+stopCluster(num_cores)
+toc()
+```
+
+Confusion Matrix for bootstrap sampling on train set
+
+```{r echo=TRUE}
+#rf_bootstrap_model$finalModel #rf_bootstrap_model$results
+print(rf_bootstrap_model)
+confusionMatrix.train(rf_bootstrap_model)
+plot(varImp(rf_bootstrap_model), main = "Variable importance from Bootstrap Random Forest", col = 2, lwd = 2)
+```
+
+Confusion Matrix for bootstrap sampling on test set
+
+```{r echo=TRUE}
+caretPredictedClass <- predict(rf_bootstrap_model, model_test_df, type = "raw")
+confusionMatrix(caretPredictedClass,model_test_df$Manipulater)
+```
+
+ROC plot for bootstrap random forest on test set
+
+```{r echo=TRUE}
+rf_bootstrap_pred <- predict(rf_bootstrap_model, model_test_df, type = "prob")[,2]
+rf_bootstrap_prediction <- prediction(rf_bootstrap_pred,model_test_df$Manipulater)
+rf_bootstrap_perf <- performance(rf_bootstrap_prediction, "tpr","fpr")
+
+plot(rf_bootstrap_perf,main="ROC Curve for bootstrap Random Forest",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=3,col="black")
+
+#AUC for the ROC plot
+performance(rf_bootstrap_prediction, "auc")
+```
+
+The best model was
+
+```{r echo=TRUE}
+rf_bootstrap_model$bestTune
+```
+
+Visulaizing the rules coming out of random forest. We can loop and print all the trees built using up sampling. For simplicity, printing just one of the trees
+
+```{r eval=FALSE, include=FALSE}
+getTree(rf_bootstrap_model$finalModel,3)
+```
+
+### Random Forest with up sampling
+To incorporate up-sampling (sample the minority class to make their frequencies closer to the majority class.), random forest can use an upsampling strategy
+
+The below code chunk sets some of the control parameters
+
+```{r echo=TRUE, warning=FALSE}
+objControl <- trainControl(method='boot', number = 1,
+                           returnResamp='final',
+                           summaryFunction = twoClassSummary,
+                           savePredictions = TRUE,
+                           classProbs = TRUE,
+                           sampling="up",allowParallel=TRUE)
+```
+
+Parallel processing using doMC needs the below setup:
+> * num_cores <- (detectCores()-1)
+* registerDoMC(num_cores)
+
+doMC may give added benefit but is OS dependent. May not work on Windows.
+
+The below code chunk uses doParallel library for parallel processing. After setting the control paramters, the model is run
+
+```{r echo=TRUE}
+num_cores <- makeCluster(detectCores()-5)
+registerDoParallel(num_cores)
+tic("RF Bagging with Up Sample")
+
+set.seed(4121)
+rf_up_model <- train(model_train_df[,1:5], model_train_df[,6],
+                  method='rf',
+                  trControl=objControl,
+                  metric = "ROC",
+                  prox=TRUE)
+stopCluster(num_cores)
+toc()
+```
+
+Confusion Matrix for upsampling on train set
+
+```{r echo=TRUE}
+#rf_up_model$finalModel #rf_up_model$results
+
+print(rf_up_model)
+confusionMatrix.train(rf_up_model)
+plot(varImp(rf_up_model), main = "Variable importance from Up Sample RF", col = 2, lwd = 2)
+```
+
+Confusion Matrix for upsampling on test set
+
+```{r echo=TRUE}
+caretPredictedClass <- predict(rf_up_model, model_test_df, type = "raw")
+confusionMatrix(caretPredictedClass,model_test_df$Manipulater)
+```
+
+ROC plot for upsample random forest on test set
+
+```{r echo=TRUE}
+rf_up_pred <- predict(rf_up_model, model_test_df, type = "prob")[,2]
+rf_up_prediction <- prediction(rf_up_pred,model_test_df$Manipulater)
+rf_up_perf <- performance(rf_up_prediction, "tpr","fpr")
+
+plot(rf_up_perf,main="ROC Curve for Up Sample Random Forest",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=3,col="black")
+
+#AUC for the ROC plot
+performance(rf_up_prediction, "auc")
+```
+
+Extracting all the rules from the trees built using random forest
+
+```{r eval=FALSE, include=FALSE}
+rf_up_treelist <- RF2List(rf_up_model$finalModel)
+rf_up_rules <- extractRules(rf_up_treelist,model_train_df[,c(1:5)], ntree = 10)
+rf_up_rules_metric <- getRuleMetric(rf_up_rules,model_train_df[,c(1:5)],model_train_df[,6])
+rf_up_rules_metric <- pruneRule(rf_up_rules_metric,model_train_df[,c(1:5)],model_train_df[,6])
+rf_up_rules_metric <- selectRuleRRF(rf_up_rules_metric,model_train_df[,c(1:5)],model_train_df[,6])
+
+#readable rules
+print(presentRules(rf_up_rules_metric, colnames(model_train_df[,c(1:5)])))
+#rf.up.learner <- buildLearner(rf.up.rules.metric,model_df[,c(1:6)],model_df[,7])
+```
+
+### Random Forest with down sampling - First Approach
+To incorporate down-sampling (sample the majority class to make their frequencies closer to the minority class.), random forest can use an downsampling strategy
+
+The below code chunk sets some of the control parameters
+
+```{r echo=TRUE, warning=FALSE}
+objControl <- trainControl(method='boot', number = 1,
+                           returnResamp='final',
+                           summaryFunction = twoClassSummary,
+                           savePredictions = TRUE,
+                           classProbs = TRUE,
+                           sampling="down")
+```
+
+After setting the control parameters, the model is run
+
+```{r echo=TRUE}
+num_cores <- makeCluster(detectCores()-5)
+registerDoParallel(num_cores)
+tic("RF Bagging with Down Sample")
+
+set.seed(4121)
+rf_down1_model <- train(model_train_df[,1:5], model_train_df[,6],
+                  method='rf',
+                  trControl=objControl,
+                  metric = "ROC")
+stopCluster(num_cores)
+toc()
+```
+
+Confusion Matrix for down sampling RF on train set
+
+```{r echo=TRUE}
+#rf_down1_model$finalModel #rf_down1_model$results
+print(rf_down1_model)
+confusionMatrix.train(rf_down1_model)
+plot(varImp(rf_down1_model), main = "Variable importance from down sample Random Forest", col = 2, lwd = 2)
+```
+
+Confusion Matrix for down sampling RF on test set
+
+```{r echo=TRUE}
+caretPredictedClass <- predict(rf_down1_model, model_test_df, type = "raw")
+confusionMatrix(caretPredictedClass,model_test_df$Manipulater)
+```
+
+ROC plot for down sample random forest on test set
+
+```{r echo=TRUE}
+rf_down1_pred <- predict(rf_down1_model, model_test_df, type = "prob")[,2]
+rf_down1_prediction <- prediction(rf_down1_pred,model_test_df$Manipulater)
+rf_down1_perf <- performance(rf_down1_prediction, "tpr","fpr")
+
+plot(rf_down1_perf,main="ROC Curve for Down Sample Random Forest",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=3,col="black")
+
+#AUC for the ROC plot
+performance(rf_down1_prediction, "auc")
+```
+
+### Random Forest with down sampling - Second Approach
+To incorporate down-sampling (sample the majority class to make their frequencies closer to the rarest class.), random forest can take a random sample of size c*nmin, where c is the number of classes and nmin is the number of samples in the minority class.
+
+**_THIS IMPLEMENTATION IS WITHOUT CARET PACKAGE_**
+
+```{r echo=TRUE}
+nmin <- sum(model_train_df$Manipulater == "Yes") #total minority cases
+set.seed(4121)
+tic("RF Bagging with Down")
+rf_down2_model <- randomForest(Manipulater ~ .,
+                         data=model_train_df, importance=TRUE, mtry = 2,
+                         #if strata is not defined RF does bootstrap sample
+                         strata = model_train_df$Manipulater,
+                         #selecting nmin cases from positive and negative class
+                         sampsize = rep(nmin,2),
+                         #cutoff: ‘winning’ class for an observation is the one
+                         #with the maximum ratio of proportion of votes to cutoff.
+                         cutoff = c(1/2, 1/2),ntree=1024,  nodesize = 10,
+                         keep.forest = TRUE)#, xtest = model_test_df[,-12])
+toc()
+```
+
+Variable importance and Confusion matrix on downsample random forest on train set
+
+```{r echo=TRUE}
+#To plot the error rate.
+#plot(rf_down1_model, main = "Error rate vs. number of trees (RF with downsample", type = "l", lwd = 3)
+
+#To know the legends, type rf_down1_model to get the confusion matrix and #see the error
+
+print(rf_down2_model)
+
+varImpPlot(rf_down2_model, main = "Variable Importance Plot with Down Sample", pch = 16, col = 'darkred')
+```
+
+Variable importance and Confusion matrix on downsample random forest on test set
+
+```{r echo=TRUE}
+testPredictedClass <- predict(rf_down2_model, model_test_df, type = "response")
+confusionMatrix(testPredictedClass,model_test_df$Manipulater)
+```
+
+ROC plot for Random Forest with downsampling on test set
+
+```{r echo=TRUE}
+rf_down2_pred <- predict(rf_down2_model, model_test_df, type = "prob")[,2]
+rf_down2_prediction <- prediction(rf_down2_pred,model_test_df$Manipulater)
+rf_down2_perf <- performance(rf_down2_prediction, "tpr","fpr")
+
+plot(rf_down2_perf,main="ROC Curve for RF with Down Sampling",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=3,col="black")
+
+#AUC for the ROC plot
+performance(rf_down2_prediction, "auc")
+```
+
+### Random Forest with SMOTE
+
+Synthetic minority oversampling technique (SMOTE) blends under-sampling of the majority class with a special form of over-sampling the minority class. SMOTE oversamples the rare event by using bootstrapping and k-nearest neighbor to synthetically create additional observations of that event.
+
+The below code chunk sets some of the control parameters
+
+```{r echo=TRUE, warning=FALSE}
+objControl <- trainControl(method='boot', number = 1,
+                           returnResamp='final',
+                           summaryFunction = twoClassSummary,
+                           savePredictions = TRUE,
+                           classProbs = TRUE,
+                           sampling="smote")
+```
+
+After setting the control parameters, the model is run
+
+```{r echo=TRUE}
+num_cores <- makeCluster(detectCores()-5)
+registerDoParallel(num_cores)
+tic("RF Bagging with SMOTE Sample")
+
+set.seed(4121)
+rf_smote_model <- train(model_train_df[,1:5], model_train_df[,6],
+                  method='rf',
+                  trControl=objControl,
+                  metric = "ROC",
+                  prox=TRUE,allowParallel=TRUE)
+stopCluster(num_cores)
+toc()
+```
+
+Confusion Matrix for RF on train set
+
+```{r echo=TRUE}
+#rf_smote_model$finalModel #rf_smote_model$results
+print(rf_smote_model)
+confusionMatrix.train(rf_smote_model)
+plot(varImp(rf_smote_model), main = "Variable importance from SMOTE Random Forest", col = 2, lwd = 2)
+```
+
+Confusion Matrix for RF on test set
+
+```{r echo=TRUE}
+caretPredictedClass <- predict(rf_smote_model, model_test_df, type = "raw")
+confusionMatrix(caretPredictedClass,model_test_df$Manipulater)
+```
+
+ROC plot for random forest on test set
+
+```{r echo=TRUE}
+rf_smote_pred <- predict(rf_smote_model, model_test_df, type = "prob")[,2]
+rf_smote_prediction <- prediction(rf_smote_pred,model_test_df$Manipulater)
+rf_smote_perf <- performance(rf_smote_prediction, "tpr","fpr")
+
+plot(rf_smote_perf,main="ROC Curve for Random Forest with SMOTE",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=3,col="black")
+
+#AUC for the ROC plot
+performance(rf_smote_prediction, "auc")
+```
+
+## Boosting
+Boosting is an ensemble technique which tries to create a strong classifier from several weak classifier. The model buidling through boosting is sequential.
+1. The first model is build based on the random sample on N observations picked from original dataset (with replacement). Equal weight is assigned to each observation. These weights decide the probability of observations which will be picked up in the training set.
+2. In the second step, all the original dataset is passed through the model. For regressor model, the observations whose predicted value differs the most from the actual value is defined to be most in error.
+3. The sampling probabilities of the observations which are most in error, is adjusted such that their chance of getting picked up for the second model is higher.
+4. As the model buidling progresses, in each of the sequence of models, the pattern which are more difficult are picked up. Different models are better in different part of the observation space.
+5. Rgeressors are combined using weighted median. Models which are more confident about their predictions are weighted more heavily.
+
+### Boosting algorithms in R
+Adaboost is one of the ways to boost the performance of decision trees on binary classification problems. The decision trees with just one level will mostly be a weak learner. These weak learners will achieve an accuracy just above random chance on a classification problem.
+
+Adaboost is also referred to as discrete AdaBoost as it is used for classification rather than regression. The algorithms in boosting are:
+
+> 1. Adaboost classification trees: **_adaboost()_** Required Package is **fastAdaboost**
+2. Adaboost.M1: **_AdaBoost.M1()_** Required Package is **adabag, plyr**
+3. Boosted Classification Trees: **_ada()_** Required Package is **adabag, plyr**
+4. Boosted Generalized Additive Model: **_gamBoost()_** Required Package is **mboost, plyr**
+5. Boosted Generalized Linear Model: **_glmboost()_** Required Package is **mboost, plyr**
+6. Boosted Linear Model: **_Bstlm()_** Required Package is **bst, plyr**
+7. Boosted Logistic Regression: **_LogitBoost()_** Required Package is **caTools**
+8. Boosted Smoothing Spline: **_bstSm()_** Required Package is **bst, plyr**
+9. Boosted Tree: **_blackboost()_** Required Package is **party, mboost, plyr**
+10. Boosted Tree: **_bstTree()_** Required Package is **bst, plyr**
+11. C5.0: **_C5.0()_** Required Package is **C50, plyr**
+12. Cost Sensitive C5.0: **_C5.0Cost()_** Required Package is **C50, plyr**
+13. Cubist: **_glmboost()_** Required Package is **cubist**
+14. DeepBoost: **_deepboost()_** Required Package is **deepboost**
+15. eXtreme Gradient Boosting: **_xgbLinear()_** Required Package is **xgboost**
+16. eXtreme Gradient Boosting: **_xgbTree()_** Required Package is **xgboost, plyr**
+17. Stochastic Gradient Boosting: **_gbm()_** Required Package is **gbm, plyr**
+
+### Boosting with adaboost (normal )
+The below code chunk sets some of the control parameters for adaboost
+
+```{r echo=TRUE}
+objControl <- trainControl(method='boot', number = 1,
+                           returnResamp='all',
+                           summaryFunction = twoClassSummary,
+                           savePredictions = TRUE,
+                           classProbs = TRUE)#, p = 0.70) #in case method = #"LGOCV"
+```
+
+```{r}
+search_grid <- expand.grid(mfinal = c(20:100), maxdepth = c(2:4),
+                    coeflearn = c("Breiman", "Freund", "Zhu"))
+```
+
+Look for the documentation of library **adabag**. The **boosting()** function of adabag implments 'AdaBoost.M1'. The *boos* paramter of boosting function is set to TRUE by default. This meand a bootstrap sample of the training set is drawn using the weights for each observation on that iteration. If FALSE, every observation is used with its weights.
+
+After setting the control paramters, the model is run
+
+```{r echo=TRUE}
+num_cores <- makeCluster(detectCores()-5)
+registerDoParallel(num_cores)
+tic("Adaptive Boosting with Bootstrap Sample")
+
+set.seed(4121)
+ada_model <- train(model_train_df[,1:5], model_train_df[,6],
+                  method='AdaBoost.M1',
+                  trControl=objControl,
+                  tuneGrid = search_grid,
+                  metric = "ROC")
+stopCluster(num_cores)
+toc()
+```
+
+Confusion Matrix for adaboost on train set
+
+```{r echo=TRUE}
+#ada_model$finalModel #ada_model$results
+print(ada_model)
+confusionMatrix.train(ada_model)
+plot(varImp(ada_model), main = "Variable importance from Adaboost with Bootstrap", col = 2, lwd = 2)
+```
+
+Confusion Matrix for adaboost on test set
+
+```{r echo=TRUE}
+caretPredictedClass <- predict(ada_model, model_test_df, type = "raw")
+confusionMatrix(caretPredictedClass,model_test_df$Manipulater)
+```
+
+ROC plot for adaboost on test set
+
+```{r echo=TRUE}
+ada_pred <- predict(ada_model, model_test_df, type = "prob")[,2]
+ada_prediction <- prediction(ada_pred,model_test_df$Manipulater)
+ada_perf <- performance(ada_prediction, "tpr","fpr")
+
+plot(ada_perf,main="ROC Curve for adaboost",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=3,col="black")
+
+#AUC for the ROC plot
+performance(ada_prediction, "auc")
+```
+
+Visulaizing the rules coming out of ada boost. We can loop and print all the trees which was built using boosting. For simplicity, we are printing just one of the trees
+
+To retrieve the understand any model specific attribute, we have to call the **$finalmodel** of the train object created using caret package. This is a generic way to use functions which are model specific. Here **get_tree()** is a function of **fastadaboost** package which cannot be used unless the the object returned is not of adaboost class.
+
+```{r echo=TRUE}
+#listTreesAda(ada_model$finalModel,3) #this is a function with rattle package
+#get_tree(ada_model$finalModel,2)
+```
+
+### Boosting with adaboost (upsample)
+The below code chunk sets some of the control parameters for adaboost
+
+```{r echo=TRUE}
+objControl <- trainControl(method='boot', number = 1,
+                           returnResamp='all',
+                           summaryFunction = twoClassSummary,
+                           savePredictions = TRUE,
+                           classProbs = TRUE,
+                           sampling = "up")#, p = 0.70) #in case method = #"LGOCV"
+```
+
+```{r}
+search_grid <- expand.grid(mfinal = c(20:100), maxdepth = c(2:4),
+                    coeflearn = c("Breiman", "Freund", "Zhu"))
+```
+
+After setting the control paramters, the model is run
+
+```{r echo=TRUE}
+num_cores <- makeCluster(detectCores()-5)
+registerDoParallel(num_cores)
+tic("Adaptive Boosting with UP Sample")
+
+set.seed(4121)
+ada_up_model <- train(model_train_df[,1:5], model_train_df[,6],
+                  method='AdaBoost.M1',
+                  trControl=objControl,
+                  tuneGrid = search_grid,
+                  metric = "ROC")
+stopCluster(num_cores)
+toc()
+```
+
+Confusion Matrix for adaboost on train set
+
+```{r echo=TRUE}
+#ada_up_model$finalModel #ada_up_model$results
+print(ada_up_model)
+confusionMatrix.train(ada_up_model)
+plot(varImp(ada_up_model), main = "Variable importance from Adaboost with Up Sample", col = 2, lwd = 2)
+```
+
+Confusion Matrix for adaboost on test set
+
+```{r echo=TRUE}
+caretPredictedClass <- predict(ada_up_model, model_test_df, type = "raw")
+confusionMatrix(caretPredictedClass,model_test_df$Manipulater)
+```
+
+ROC plot for adaboost on test set
+
+```{r echo=TRUE}
+ada_pred <- predict(ada_up_model, model_test_df, type = "prob")[,2]
+ada_prediction <- prediction(ada_pred,model_test_df$Manipulater)
+ada_perf <- performance(ada_prediction, "tpr","fpr")
+
+plot(ada_perf,main="ROC Curve for adaboost with upsample",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=3,col="black")
+
+#AUC for the ROC plot
+performance(ada_prediction, "auc")
+```
+
+### Boosting with adaboost (down sample)
+The below code chunk sets some of the control parameters for adaboost
+
+```{r echo=TRUE}
+objControl <- trainControl(method='boot', number = 1,
+                           returnResamp='all',
+                           summaryFunction = twoClassSummary,
+                           savePredictions = TRUE,
+                           classProbs = TRUE,
+                           sampling = "down")#, p = 0.70) #in case method = #"LGO"
+```
+
+```{r}
+search_grid <- expand.grid(mfinal = c(20:100), maxdepth = c(2:4),
+                    coeflearn = c("Breiman", "Freund", "Zhu"))
+```
+
+After setting the control paramters, the model is run
+
+```{r echo=TRUE}
+num_cores <- makeCluster(detectCores()-5)
+registerDoParallel(num_cores)
+tic("Adaptive Boosting with Down Sample")
+
+set.seed(4121)
+ada_down.model <- train(model_train_df[,1:5], model_train_df[,6],
+                  method='AdaBoost.M1',
+                  trControl=objControl,
+                  tuneGrid = search_grid,
+                  metric = "ROC")
+stopCluster(num_cores)
+toc()
+```
+
+Confusion Matrix for adaboost on train set
+
+```{r echo=TRUE}
+#ada_down.model$finalModel #ada_down.model$results
+print(ada_down.model)
+confusionMatrix.train(ada_down.model)
+plot(varImp(ada_down.model), main = "Variable importance from Adaboost with down sample", col = 2, lwd = 2)
+```
+
+Confusion Matrix for adaboost on test set
+
+```{r echo=TRUE}
+caretPredictedClass <- predict(ada_down.model, model_test_df, type = "raw")
+confusionMatrix(caretPredictedClass,model_test_df$Manipulater)
+```
+
+ROC plot for adaboost on test set
+
+```{r echo=TRUE}
+ada_pred <- predict(ada_down.model, model_test_df, type = "prob")[,2]
+ada_prediction <- prediction(ada_pred,model_test_df$Manipulater)
+ada_perf <- performance(ada_prediction, "tpr","fpr")
+
+plot(ada_perf,main="ROC Curve for adaboost with down sample",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=3,col="black")
+
+#AUC for the ROC plot
+performance(ada_prediction, "auc")
+```
+
+### Boosting with adaboost (SMOTE)
+The below code chunk sets some of the control parameters for adaboost
+
+```{r echo=TRUE}
+objControl <- trainControl(method='boot', number = 1,
+                           returnResamp='all',
+                           summaryFunction = twoClassSummary,
+                           savePredictions = TRUE,
+                           classProbs = TRUE,
+                           sampling = "smote")#, p = 0.70) #in case method = #"LGO"
+```
+
+```{r}
+search_grid <- expand.grid(mfinal = c(20:100), maxdepth = c(2:4),
+                    coeflearn = c("Breiman", "Freund", "Zhu"))
+```
+
+After setting the control paramters, the model is run
+
+```{r echo=TRUE}
+num_cores <- makeCluster(detectCores()-5)
+registerDoParallel(num_cores)
+tic("Adaptive Boosting with SMOTE")
+
+set.seed(4121)
+ada_smote_model <- train(model_train_df[,1:5], model_train_df[,6],
+                  method='AdaBoost.M1',
+                  trControl=objControl,
+                  tuneGrid = search_grid,
+                  metric = "ROC")
+stopCluster(num_cores)
+toc()
+```
+
+Confusion Matrix for adaboost on train set
+
+```{r echo=TRUE}
+#ada_smote_model$finalModel #ada_smote_model$results
+print(ada_smote_model)
+confusionMatrix.train(ada_smote_model)
+plot(varImp(ada_smote_model), main = "Variable importance from Adaboost with SMOTE", col = 2, lwd = 2)
+```
+
+Confusion Matrix for adaboost on test set
+
+```{r echo=TRUE}
+caretPredictedClass <- predict(ada_smote_model, model_test_df, type = "raw")
+confusionMatrix(caretPredictedClass,model_test_df$Manipulater)
+```
+
+ROC plot for adaboost on test set
+
+```{r echo=TRUE}
+ada_pred <- predict(ada_smote_model, model_test_df, type = "prob")[,2]
+ada_prediction <- prediction(ada_pred,model_test_df$Manipulater)
+ada_perf <- performance(ada_prediction, "tpr","fpr")
+
+plot(ada_perf,main="ROC Curve for adaboost with SMOTE",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=3,col="black")
+
+#AUC for the ROC plot
+performance(ada_prediction, "auc")
+```
+
+### Boosting with xgboost (normal)
+
+Look for the documentation of library **xgboost**. The **xgb.train()** function of xgboost implments 'xgbTree'(Default) and 'xgbLinear'.
+
+1. [Refer](https://www.analyticsvidhya.com/blog/2016/03/complete-guide-parameter-tuning-xgboost-with-codes-python/) to know about the fine tuning parameters.
+2. [This](http://topepo.github.io/caret/train-models-by-tag.html#Boosting) can also be referred to know about the parameter fine tuning.
+
+
+For xgbTree the fine tuning paramter consists of:
+
+> 1. eta control the learning rate: scale the contribution of each tree by a factor of 0 < eta < 1 when it is added to the current approximation. Used to prevent overfitting by making the boosting process more conservative. Lower value for eta implies larger value for nrounds: low eta value means model more robust to overfitting but slower to compute. Default: 0.3
+2. gamma minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.
+3. max_depth maximum depth of a tree. Default: 6
+4. min_child_weight minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be. Default: 1
+5. subsample subsample ratio of the training instance. Setting it to 0.5 means that xgboost randomly collected half of the data instances to grow trees and this will prevent overfitting. It makes computation shorter (because less data to analyse). It is advised to use this parameter with eta and increase nround. Default: 1
+6. colsample_bytree subsample ratio of columns when constructing each tree. Default: 1
+7. num_parallel_tree Experimental parameter. number of trees to grow per round. Useful to test Random Forest through Xgboost (set colsample_bytree < 1, subsample < 1 and round = 1) accordingly. Default: 1
+
+The below code chunk sets some of the control parameters for adaboost
+
+```{r echo=TRUE}
+objControl <- trainControl(method='boot', number = 1,
+                           returnResamp='final',
+                           summaryFunction = twoClassSummary,
+                           savePredictions = TRUE,
+                           classProbs = TRUE)
+```
+
+```{r}
+search_grid <- expand.grid(nrounds = c(70:150), max_depth = c(2:4),
+                    eta = c(0.1,0.3,0.5),
+                    gamma = c(0.03,0.09, 0.12),
+                    colsample_bytree = c(5:10)/10,
+                    min_child_weight = c(1:5),
+                    subsample = c(0.5))
+```
+
+After setting the control paramters, the model is run
+
+```{r echo=TRUE}
+num_cores <- makeCluster(detectCores()-5)
+registerDoParallel(num_cores)
+tic("Xtreme Boosting with Bootstrap Sampling")
+
+set.seed(4121)
+xg_model <- train(model_train_df[,1:5], model_train_df[,6],
+                  method='xgbTree',
+                  trControl=objControl,
+                  tuneGrid = search_grid,
+                  metric = "ROC")
+stopCluster(num_cores)
+toc()
+```
+
+Confusion Matrix for xgboost on train set
+
+```{r echo=TRUE}
+xg_model$bestTune
+confusionMatrix.train(xg_model)
+
+plot(varImp(xg_model), main = "Variable importance from xgboost", col = 2, lwd = 2)
+```
+
+Confusion Matrix for xgboost on test set
+
+```{r echo=TRUE}
+caretPredictedClass <- predict(xg_model, model_test_df[1:5], type = "raw")
+confusionMatrix(caretPredictedClass,model_test_df$Manipulater)
+```
+
+ROC plot for xgboost on test set
+
+```{r echo=TRUE}
+xg_pred <- predict(xg_model, model_test_df[1:5], type = "prob")[,2]
+xg_prediction <- prediction(xg_pred,model_test_df$Manipulater)
+xg_perf <- performance(xg_prediction, "tpr","fpr")
+
+plot(xg_perf,main="ROC Curve for xgboost",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=3,col="black")
+
+#AUC for the ROC plot
+performance(xg_prediction, "auc")
+```
+
+### Boosting with xgboost (up sample)
+The below code chunk sets some of the control parameters for adaboost
+
+```{r echo=TRUE}
+objControl <- trainControl(method='boot', number = 1,
+                           returnResamp='final',
+                           summaryFunction = twoClassSummary,
+                           savePredictions = TRUE,
+                           classProbs = TRUE, sampling = "up")
+```
+
+```{r}
+search_grid <- expand.grid(nrounds = c(70:150), max_depth = c(2:4),
+                    eta = c(0.1,0.3,0.5),
+                    gamma = c(0.03,0.09, 0.12),
+                    colsample_bytree = c(5:10)/10,
+                    min_child_weight = c(1:5),
+                    subsample = c(0.5))
+```
+
+After setting the control paramters, the model is run
+
+```{r echo=TRUE}
+num_cores <- makeCluster(detectCores()-5)
+registerDoParallel(num_cores)
+tic("Xtreme Boosting with Up Sampling")
+
+set.seed(4121)
+xg_up_model <- train(model_train_df[,1:5], model_train_df[,6],
+                  method='xgbTree',
+                  trControl=objControl,
+                  tuneGrid = search_grid,
+                  metric = "ROC")
+stopCluster(num_cores)
+toc()
+```
+
+Confusion Matrix for xgboost on train set
+
+```{r echo=TRUE}
+xg_up_model$bestTune
+confusionMatrix.train(xg_up_model)
+
+plot(varImp(xg_up_model), main = "Variable importance from xgboost with Up Sample", col = 2, lwd = 2)
+```
+
+Confusion Matrix for xgboost on test set
+
+```{r echo=TRUE}
+caretPredictedClass <- predict(xg_up_model, model_test_df[1:5], type = "raw")
+confusionMatrix(caretPredictedClass,model_test_df$Manipulater)
+```
+
+ROC plot for xgboost on test set
+
+```{r echo=TRUE}
+xg_pred <- predict(xg_up_model, model_test_df[1:5], type = "prob")[,2]
+xg_prediction <- prediction(xg_pred,model_test_df$Manipulater)
+xg_perf <- performance(xg_prediction, "tpr","fpr")
+
+plot(xg_perf,main="ROC Curve for xgboost with Up Sample",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=3,col="black")
+
+#AUC for the ROC plot
+performance(xg_prediction, "auc")
+```
+
+### Boosting with xgboost (down sample)
+The below code chunk sets some of the control parameters for adaboost
+
+```{r echo=TRUE}
+objControl <- trainControl(method='boot', number = 1,
+                           returnResamp='final',
+                           summaryFunction = twoClassSummary,
+                           savePredictions = TRUE,
+                           classProbs = TRUE, sampling = "down")
+```
+
+```{r}
+search_grid <- expand.grid(nrounds = c(70:150), max_depth = c(2:4),
+                    eta = c(0.1,0.3,0.5),
+                    gamma = c(0.03,0.09, 0.12),
+                    colsample_bytree = c(5:10)/10,
+                    min_child_weight = c(1:5),
+                    subsample = c(0.5))
+```
+
+After setting the control paramters, the model is run
+
+```{r echo=TRUE}
+num_cores <- makeCluster(detectCores()-5)
+registerDoParallel(num_cores)
+tic("Xtreme Boosting with Down Sampling")
+set.seed(4121)
+xg_down_model <- train(model_train_df[,1:5], model_train_df[,6],
+                  method='xgbTree',
+                  trControl=objControl,
+                  tuneGrid = search_grid,
+                  metric = "ROC")
+stopCluster(num_cores)
+toc()
+```
+
+Confusion Matrix for xgboost on train set
+
+```{r echo=TRUE}
+xg_down_model$bestTune
+confusionMatrix.train(xg_down_model)
+
+plot(varImp(xg_down_model), main = "Variable importance from xgboost with down sample", col = 2, lwd = 2)
+```
+
+Confusion Matrix for xgboost on test set
+
+```{r echo=TRUE}
+caretPredictedClass <- predict(xg_down_model, model_test_df[1:5], type = "raw")
+confusionMatrix(caretPredictedClass,model_test_df$Manipulater)
+```
+
+ROC plot for xgboost on test set
+
+```{r echo=TRUE}
+xg_pred <- predict(xg_down_model, model_test_df[1:5], type = "prob")[,2]
+xg_prediction <- prediction(xg_pred,model_test_df$Manipulater)
+xg_perf <- performance(xg_prediction, "tpr","fpr")
+
+plot(xg_perf,main="ROC Curve for xgboost with down sample",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=3,col="black")
+
+#AUC for the ROC plot
+performance(xg_prediction, "auc")
+```
+
+### Boosting with xgboost (SMOTE)
+The below code chunk sets some of the control parameters for adaboost
+
+```{r echo=TRUE}
+objControl <- trainControl(method='boot', number = 1,
+                           returnResamp='final',
+                           summaryFunction = twoClassSummary,
+                           savePredictions = TRUE,
+                           classProbs = TRUE, sampling = "smote")
+```
+
+```{r}
+search_grid <- expand.grid(nrounds = c(70:150), max_depth = c(2:4),
+                    eta = c(0.1,0.3,0.5),
+                    gamma = c(0.03,0.09, 0.12),
+                    colsample_bytree = c(5:10)/10,
+                    min_child_weight = c(1:5),
+                    subsample = c(0.5))
+```
+
+After setting the control paramters, the model is run
+
+```{r echo=TRUE}
+num_cores <- makeCluster(detectCores()-5)
+registerDoParallel(num_cores)
+tic("Xtreme Boosting with SMOTE Sampling")
+set.seed(4121)
+xg_smote_model <- train(model_train_df[,1:5], model_train_df[,6],
+                  method='xgbTree',
+                  trControl=objControl,
+                  tuneGrid = search_grid,
+                  metric = "ROC")
+stopCluster(num_cores)
+toc()
+```
+
+Confusion Matrix for xgboost on train set
+
+```{r echo=TRUE}
+xg_smote_model$bestTune
+confusionMatrix.train(xg_smote_model)
+
+plot(varImp(xg_smote_model), main = "Variable importance from xgboost with SMOTE", col = 2, lwd = 2)
+```
+
+Confusion Matrix for xgboost on test set
+
+```{r echo=TRUE}
+caretPredictedClass <- predict(xg_smote_model, model_test_df[1:5], type = "raw")
+confusionMatrix(caretPredictedClass,model_test_df$Manipulater)
+```
+
+ROC plot for xgboost on test set
+
+```{r echo=TRUE}
+xg_pred <- predict(xg_smote_model, model_test_df[1:5], type = "prob")[,2]
+xg_prediction <- prediction(xg_pred,model_test_df$Manipulater)
+xg_perf <- performance(xg_prediction, "tpr","fpr")
+
+plot(xg_perf,main="ROC Curve for xgboost with SMOTE",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=3,col="black")
+
+#AUC for the ROC plot
+performance(xg_prediction, "auc")
+```
+
+```{r}
+toc()
+```
+
+## Neural Network
+
+### Neural network implementation to find the manipulaters
+The below code chunk sets some of the control parameters
+
+```{r echo=TRUE}
+objControl <- trainControl(method='boot', number = 1,
+                           returnResamp='none',
+                           summaryFunction = twoClassSummary,
+                           savePredictions = TRUE,
+                           classProbs = TRUE, allowParallel=FALSE)
+```
+
+Using search grid to fine tune the neural network. **Size** fine tunes number of hidden units to tune and **decay** fine tunes weight decay
+
+```{r echo=TRUE}
+search_grid <- expand.grid(.decay = c(0.5, 0.1, 0.05), .size = c(2, 3, 4,5,6,7))
+```
+
+After setting the control paramters, the model is run. If we use **linout=TRUE** in **train()** the neural network builds a regression model. **linout=FALSE** will make **nnet** use a sigmodial function and all the predictions will be constrained between **[0,1]**
+
+```{r echo=TRUE}
+set.seed(4121)
+
+nn_model <- train(model_train_df[,1:5], model_train_df[,6],
+                  method='nnet',
+                  trControl=objControl,
+                  metric = "ROC",
+                  maxit = 1000,
+                  tuneGrid = search_grid,
+                  trace = FALSE,
+                  linout = FALSE)
+```
+
+Confusion Matrix for Neural Network  on train set
+
+```{r echo=TRUE}
+#nn_model$finalModel #nn_model$results
+print(nn_model)
+confusionMatrix.train(nn_model)
+plot(varImp(nn_model), main = "Variable importance from Neural Network", col = 2, lwd = 2)
+```
+
+Confusion Matrix for Neural Network  on test set
+
+```{r echo=TRUE}
+caretPredictedClass <- predict(nn_model, model_test_df, type = "raw")
+confusionMatrix(caretPredictedClass,model_test_df$Manipulater)
+```
+
+ROC plot for Neural Network on test set
+
+```{r echo=TRUE}
+nn_pred <- predict(nn_model, model_test_df, type = "prob")[,2]
+nn_prediction <- prediction(nn_pred,model_test_df$Manipulater)
+nn_perf <- performance(nn_prediction, "tpr","fpr")
+
+plot(nn_perf,main="ROC Curve for Neural Network",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=3,col="black")
+
+#AUC for the ROC plot
+performance(nn_prediction, "auc")
+```
+
+## Logistic Regression
+The variables DSRI and GMI causes fitted probability to be numerically 0 or 1. Using less number of variables in the logistic regression.
+
+```{r echo=TRUE}
+lg_model_df <- as.data.frame(filter_data[,c(#"DSRI",
+                                          #"GMI",
+                                          "AQI",
+                                          "SGI",
+                                          "DEPI",
+                                          "SGAI",
+                                          "ACCR",
+                                          "LEVI",
+                                          "Manipulater"
+)])
+lg_train_df <- as.data.frame(train_df[,c(#"DSRI",
+                                          #"GMI",
+                                          "AQI",
+                                          "SGI",
+                                          "DEPI",
+                                          "SGAI",
+                                          "ACCR",
+                                          "LEVI",
+                                          "Manipulater"
+)])
+lg_test_df <- as.data.frame(test_df[,c(#"DSRI",
+                                          #"GMI",
+                                          "AQI",
+                                          "SGI",
+                                          "DEPI",
+                                          "SGAI",
+                                          "ACCR",
+                                          "LEVI",
+                                          "Manipulater"
+)])
+```
+
+The below code chunk sets some of the control parameters
+
+```{r echo=TRUE}
+objControl <- trainControl(method='boot', number=1,
+                           returnResamp='none',
+                           summaryFunction = twoClassSummary,
+                           savePredictions = TRUE,
+                           classProbs = TRUE,allowParallel=FALSE)
+```
+
+After setting the control paramters, the model is run
+
+```{r include=FALSE}
+set.seed(4121)
+lg_model <- train(lg_train_df[,1:6], lg_train_df[,7],
+                     method='glmStepAIC',
+                     trControl=objControl,
+                     metric = "ROC")
+```
+
+Confusion Matrix for logistic regression on train set
+
+```{r echo=TRUE}
+print(lg_model)
+confusionMatrix.train(lg_model)
+plot(varImp(lg_model), main = "Variable importance from Logistic Regression", col = 2, lwd = 2)
+```
+
+Confusion Matrix for logistic regression on test set
+
+```{r echo=TRUE}
+caretPredictedClass <- predict(lg_model, lg_test_df, type = "raw")
+confusionMatrix(caretPredictedClass,lg_test_df$Manipulater)
+```
+
+ROC plot for logistic regression
+
+```{r echo=TRUE}
+lg_pred <- predict(lg_model, lg_test_df, type = "prob")[,2]
+lg_prediction <- prediction(lg_pred,lg_test_df$Manipulater)
+lg_perf <- performance(lg_prediction, "tpr","fpr")
+
+plot(lg_perf,main="ROC Curve for Logistic Regression",col=2,lwd=2)
+abline(a=0,b=1,lwd=2,lty=3,col="black")
+
+#AUC for the ROC plot
+performance(lg_prediction, "auc")
+```
+
+End of document
+
+***
