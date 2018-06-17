@@ -1,0 +1,221 @@
+---
+title: "Decision Tree using Caret Package"
+author: "Kumar Rahul"
+date: "9 September 2016"
+output: word_document
+---
+
+## In this exercise, we will use the HR dataset and understand the following using caret package:
+
+> 1. Building the decision tree model
+2. Creating the Confusion Matrix and ROC plot on train data
+3. Creating the Confusion Matrix and ROC plot on test data
+
+There are bugs/missing code in the entire exercise. The participants are expected to work upon them.
+***
+***
+
+## Here are some useful links:
+
+> 1. **[Read](http://www.ats.ucla.edu/stat/mult_pkg/faq/general/dummy.htm)** about interaction variable coding
+2. Refer **[link](http://www.statmethods.net/input/valuelabels.html)** to know about adding lables to factors
+3. Refer **[link](http://stackoverflow.com/questions/2342472/recode-relevel-data-frame-factors-with-different-levels)** to relvel factor variables
+4. **[Read](http://stats.stackexchange.com/questions/88485/variable-is-significant-through-stepwise-regression-but-not-in-final-models-sum)** about the issues in stepwise regression
+5. **[Read](http://topepo.github.io/caret/training.html)** about the modelling activity via caret package
+6. The **[complete](http://topepo.github.io/caret/available-models.html)** list of tuning parameter for different models in caret package
+
+
+***
+
+# Code starts here
+We are going to use below mentioned libraries for demonstrating logistic regression:
+
+```{r libraries, echo=TRUE, message=FALSE, warning=FALSE}
+library(caret)    #for data partition. Model building
+#library(Deducer) #for ROC plot
+library(ROCR)     #for ROC plot (other way)
+library(rattle)   #for plotting tree
+library(rpart)
+```
+
+## Data Import and Manipulation
+
+### 1. Importing a data set 
+
+_Give the correct path to the data_
+
+```{r readData, echo=TRUE,tidy=TRUE}
+raw.data <- read.csv("/Users/Rahul/Documents/Datasets/IMB533_HR_Data_No_Missing_Value.csv", header = TRUE,sep = ",",na.strings = c(""," ", "NA"))
+```
+
+Note that `echo = FALSE` parameter prevents printing the R code that generated the
+plot.
+
+### 2. Structure and Summary of the dataset
+
+```{r summarizeData, echo=TRUE,tidy=TRUE}
+str(raw.data)
+summary(raw.data)
+```
+
+
+Create a new data frame and store the raw data copy. This is being done to have a copy of the raw data intact for further manipulation if needed.
+
+```{r createDataCopy, echo=TRUE,tidy=TRUE}
+filter.data <- na.omit(raw.data) # listwise deletion of missing
+```
+
+### 3. Create train and test dataset
+
+#### Reserve 80% for **_training_** and 20% of **_test_**
+
+_Correct the error in the below code chunk_
+```{r createDataPartition, echo=TRUE,tidy=TRUE}
+set.seed(2341)
+trainIndex <- createDataPartition(filter.data$Status, p = 0.80, list = FALSE)
+data.train <- filter.data[trainIndex,]
+data.test <- filter.data[-trainIndex,]
+```
+
+We can pull the specific attribute needed to build the model is another data frame. This agian is more of a hygine practice to not touch the **train** and **test** data set directly. 
+
+_Correct the error in the below code chunk_
+```{r variableUsedinTraining, echo=TRUE,tidy=TRUE}
+dt.train.data <- as.data.frame(data.train[,c("DOJ.Extended",
+                                             "Duration.to.accept.offer",
+                                             "Notice.period",
+                                             "Offered.band",
+                                             "Percent.difference.CTC",
+                                             "Joining.Bonus",
+                                             "Gender",
+                                             "Candidate.Source", 
+                                             "Rex.in.Yrs",
+                                             "LOB", 
+                                             "Location",
+                                             "Age",
+                                             "Status"
+)])
+```
+
+_Correct the error in the below code chunk_
+```{r variableUsedinTesting, echo=TRUE, tidy=TRUE}
+dt.test.data <- as.data.frame(data.test[,c("DOJ.Extended",
+                                           "Duration.to.accept.offer",
+                                           "Notice.period",
+                                           "Offered.band",
+                                           "Percent.difference.CTC",
+                                           "Joining.Bonus",
+                                           "Gender",
+                                           "Candidate.Source", 
+                                           "Rex.in.Yrs",
+                                           "LOB", 
+                                           "Location",
+                                           "Age",
+                                           "Status"
+)])
+```
+
+***
+
+## Model Building: Using the **caret()** package
+There are a number of models which can be built using caret package. To get the names of all the models possible.
+
+```{r caretModelInfo, echo=TRUE}
+names(getModelInfo())
+```
+
+To get the info on specific model:
+
+```{r caretModelType, echo=TRUE}
+getModelInfo()$glmnet$type
+```
+
+The below chunk of code is standarized way of building model using caret package. Setting in the control parameters for the model.
+
+```{r caretControl, echo=TRUE}
+objControl <- trainControl(method = "cv", number = 2,
+                           summaryFunction = twoClassSummary,
+                           classProbs = TRUE,
+                           savePredictions = TRUE)
+```
+
+Using search grid to fine tune the model
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+#search.grid <- expand.grid()
+```
+
+The model building starts here. 
+> 1. **metric= "ROC"** uses ROC curve to select the best model.Accuracy, Kappa are other options. To use this change twoClassSummary to defaultSummary in **ObjControl**
+2. **verbose = FALSE**: does not show the processing output on console
+
+The factor names at times may not be consistent. R may expect **"Not.Joined"** but the actual level may be **"Not Joined"** This is corrected by using **make.names()** function to give syntactically valid names. Type ?rpart.control in console to get the list of parameters which control the tree growth.
+
+```{r caretModel, echo=TRUE, message=FALSE, warning=FALSE}
+#dt.train.data$StatusFactor <- as.factor(ifelse(dt.train.data$Status == "Joined", 1,0))
+set.seed(766)
+levels(dt.train.data$Status) <- make.names(levels(factor(dt.train.data$Status)))
+formula <- as.formula(dt.train.data$Status~.)
+dtCaretModel <- train.formula(formula,
+                      dt.train.data,
+                      method = '', #method missing
+                      metric = "ROC",
+                      maxdepth = 5,
+                      cp = 0.002,
+                      trControl = objControl)
+                     #tuneGrid = searchGrid)
+```
+
+
+## Model Evaluation
+
+### 1. One useful plot from caret package is the variable importance plot
+
+In case you get an error "Invalid Graphic state", uncomment the line below
+```{r caretVarImp, echo=TRUE}
+summary(dtCaretModel$finalModel)
+#dev.off()
+fancyRpartPlot(dtCaretModel$finalModel)
+```
+
+
+### 2. The prediction and confusion Matrix on train data.
+
+The syntax for prediction in caret is almost similar expect the the **type** attribute expects input as **'raw'** or **'prob'**. In case of prob, the predicted value holds the probability of both positive and negative class.
+
+```{r caretPrediction, echo=TRUE}
+#Missing code. May result in error
+levels(dt.train.data$Status) <- make.names(levels(factor(dt.train.data$Status)))
+caretPredictedClass <- predict(object = dtCaretModel, dt.train.data[,1:12], type = 'raw')
+confusionMatrix(caretPredictedClass,dt.train.data$Status)
+```
+
+### 3. Confusion Matrix on the test data
+
+The **predict** function is used to get the predicted class on the new dataset.
+```{r modelValidation, echo=FALSE,tidy=TRUE}
+levels(dt.test.data$Status) <- make.names(levels(factor(dt.test.data$Status)))
+dtCaretTestPredictedClass = predict(dtCaretModel, dt.test.data, type = "raw")
+confusionMatrix(dtCaretTestPredictedClass,dt.test.data$Status)
+```
+
+
+### 4. ROC Plot on the test data
+
+ROCR package can be used to evaluate the model performace on the test data. The same package can also be used to get the model performace on the test data.
+
+```{r validationROC, echo=FALSE,tidy=TRUE}
+#error in below line
+dtCaretTestPredictedProbability = predict(dtCaretModel, dt.test.data, type = "prob")
+dtPredObj <- prediction(dtCaretTestPredictedProbability[2],dt.test.data$Status)
+dtPerfObj <- performance(dtPredObj, "tpr","fpr")
+dev.off()
+plot(dtPerfObj,main = "ROC Curve",col = 2,lwd = 2)
+abline(a = 0,b = 1,lwd = 2,lty = 3,col = "black")
+performance(dtPredObj, "auc")
+```
+
+
+#### End of Document
+
+***
+***

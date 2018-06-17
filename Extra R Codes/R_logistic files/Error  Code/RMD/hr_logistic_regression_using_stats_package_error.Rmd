@@ -1,0 +1,275 @@
+---
+title: "Logistic Regression Using R"
+author: "Kumar Rahul"
+output: word_document
+---
+
+## In this exercise, we will use the HR dataset and understand the following:
+
+> 1. Building the logistic regression model
+2. Writing the model equation and interpreting the model summary
+3. Finding the variable which is leading to quasi complete seperation
+4. Creating the Confusion Matrix and ROC plot on train data (This is self work/assignment)
+5. Using mis-classification cost as a criteria to select the best cut-off
+6. Using Younden Index as the criteria to select the best cut-off
+7. Creating the Confusion Matrix and ROC plot on test data
+8. Changing the base or reference category and evaluate the impact on the model
+
+There are bugs/missing code in the entire exercise. The participants are expected to work upon them.
+***
+***
+
+## Here are some useful links:
+
+> 1. **[Read](http://www.ats.ucla.edu/stat/mult_pkg/faq/general/dummy.htm)** about interaction variable coding
+2. Refer **[link](http://www.statmethods.net/input/valuelabels.html)** to know about adding lables to factors
+3. Refer **[link](http://stackoverflow.com/questions/2342472/recode-relevel-data-frame-factors-with-different-levels)** to relvel factor variables
+4. **[Read](http://stats.stackexchange.com/questions/88485/variable-is-significant-through-stepwise-regression-but-not-in-final-models-sum)** about the issues in stepwise regression
+5. **[Read](http://www.ats.ucla.edu/stat/mult_pkg/faq/general/complete_separation_logit_models.htm)** about the issue of Quasi seperation
+
+***
+
+# Code starts here
+
+We are going to use below mentioned libraries for demonstrating logistic regression:
+
+```{r libraries, echo=TRUE, message=FALSE, warning=FALSE}
+library(stats)    #for binary logistic without wald statistics
+#library(Deducer)  #for ROC plot
+library(ROCR)     #for ROC plot (other way)
+library(caret)    #for data partition. Model building
+library(ResourceSelection) #Hosmer lemeshow GoF test
+```
+
+## Data Import and Manipulation
+
+### 1. Importing a data set 
+
+_Give the correct path to the data_
+```{r readData, echo=TRUE,tidy=TRUE}
+raw.data <- read.csv("/Users/Rahul/Documents/Datasets/IMB533_HR_data.csv", header = TRUE,sep = ",",na.strings = c(""," ", "NA"))
+```
+
+Note that `echo = FALSE` parameter prevents printing the R code that generated the
+plot.
+
+### 2. Structure and Summary of the dataset
+
+```{r summarizeData, echo=TRUE,tidy=TRUE}
+str(raw.data)
+summary(raw.data)
+```
+
+
+Create a new data frame and store the raw data copy. This is being done to have a copy of the raw data intact for further manipulation if needed.
+
+```{r createDataCopy, echo=TRUE,tidy=TRUE}
+filter.data <- na.omit(raw.data) # listwise deletion of missing
+```
+
+### 3. Relevel
+
+By default, the base category/reference category selected is ordered alphabetically. In this data set, Status has two classes (Joined/Not Joined). Since 'J' appears first compared to 'N' in alphabet sequence, So Joined will be marked as the base category.
+
+The base category can be releveled using the function **relevel()**.
+
+```{r relevelCategory, echo=TRUE,tidy=TRUE}
+#Missing Code
+```
+
+
+### 4. Create train and test dataset
+
+#### Reserve 80% for **_training_** and 20% of **_test_**
+
+_Correct the error in the below code chunk_
+```{r createDataPartition, echo=TRUE,tidy=TRUE}
+set.seed(2341)
+trainIndex <- createDataPartition(filter.data, p = 0.20, list = FALSE)
+data.train <- filter.data[trainIndex,]
+data.test <- filter.data[-trainIndex,]
+```
+
+We can pull the specific attribute needed to build the model is another data frame. This agian is more of a hygine practice to not touch the **train** and **test** data set directly. 
+
+_Correct the error in the below code chunk_
+```{r variableUsedinTraining, echo=TRUE,tidy=TRUE}
+lg.train.data <- as.data.frame(data.train[,c("DOJ.Extended",
+                                             "Duration.to.accept.offer",
+                                             "Notice.period",
+                                             "Offered.band",
+                                             "Percent.difference",
+                                             "Joining.Bonus",
+                                             "Candidate.relocate.actual", 
+                                             "Gender",
+                                             "CandidateSource", 
+                                             "Rex.in.Yrs",
+                                             "LOB", 
+                                             "Location.offered",
+                                             "Age",
+                                             "Status"
+)])
+```
+
+_Correct the error in the below code chunk_
+```{r variableUsedinTesting, echo=TRUE, tidy=TRUE}
+lg.test.data <- as.data.frame(data.test[,c("DOJ.Extended",
+                                           "Duration.to.accept.offer",
+                                           "Notice.period",
+                                           "Offered.band",
+                                           "Percent.difference",
+                                           "Joining.Bonus",
+                                           "Candidate.relocate.actual", 
+                                           "Gender",
+                                           "CandidateSource", 
+                                           "Rex.in.Yrs",
+                                           "LOB", 
+                                           "Location.offered",
+                                           "Age",
+                                           "Status"
+)])
+```
+
+***
+
+## Model building: Using the **glm()** function
+
+The actual model building starts now. Note that we are demonstrating the strategy of building a step wise model (forward selection and backward elimination)  using the glm function
+
+_Correct the error in the below code chunk_
+```{r buildModel, echo=TRUE, message=FALSE, warning=FALSE, tidy=TRUE}
+#Null Model
+noModel <- glm(Status ~ 1,data = lg.train.data, family = binomial)
+
+#Full Model
+lgGlmModelFull = glm(Status ~ .
+                     , data = lg.test.data, family = binomial)
+
+#Stepwise - Forward selection backward elimination
+lgGlmModelStepwise <- step(noModel, list(lower = formula(noModel),
+                                         upper = formula(lgGlmModelFull)),
+                           direction = "both",trace = 0)
+```
+
+
+***
+
+## Model Evaluation
+
+### 1. ROC plot and Model summary of Train Data
+
+Checking the hosmer lemeshow value and the ROC plot using the deducer package. Note that this evaluation is on training data.
+
+```{r modelROC,tidy=TRUE}
+hoslem.test(lgGlmModelStepwise$y, fitted(lgGlmModelStepwise)) #Hosmer lemeshow test
+#rocplot(lgGlmModelStepwise)
+summary(lgGlmModelStepwise)
+```
+
+
+### 2. The optimal cut-off
+
+```{r variableDeclaration, include=FALSE}
+#creating empty vectors to store the results. 
+msclaf.cost <- c()
+youden.index <- c()
+cutoff <- c()
+P11 <- c() #correct classification of positive as positive
+P00 <- c() #correct classification of negative as negative
+P10 <- c() #misclassification of positive class to negative class
+P01 <- c() #misclassification of negative class to positive class
+```
+
+####Select the optimal cut-off value, if:
+> 1. cost of misclassifying Not Joined as Joined is twice as costly as cost of
+micalssifying Joined as Not Joined
+2. both sensitivity and specificity are equally important
+
+The best cut-off is the one which minimizes the misclassification cost (in case of **_option 1_**) or which maximizes the Youden's Index (in case of **_Option 2_**). The misclassification cost table is 
+
+_fix the bug here_: clue is in the above **two options**
+```{r modelOptimalCutOff, echo=FALSE,tidy=TRUE}
+lgGlmTrainPredictedProbability = predict.glm(lgGlmModelStepwise, lg.train.data, type = "response")
+#variable with all the values as joined
+n <- length(lg.train.data$Status)
+
+costs = matrix(c(0,2,1, 0), ncol = 2)
+colnames(costs) = rownames(costs) = c("Joined", "Non Joined")
+as.table(costs)
+```
+
+The misclassification cost table is:
+```{r costCal, echo=TRUE, tidy=TRUE}
+# defining log odds in favor of Non Default
+for (i in seq(0.05, 1, .05)) {
+  predicted.y = rep("Joined", n)
+  predicted.y[lgGlmTrainPredictedProbability > i] = "Not Joined"
+  tbl <- table(lg.train.data$Status, predicted.y)
+  if ( i <= 1) {
+    #Classifying Not Joined as Joined
+    P10[20*i] <- tbl[2]/(tbl[2] + tbl[4])
+    
+    P11[20*i] <- tbl[4]/(tbl[2] + tbl[4])
+    
+    #Classifying Joined as Not Joined
+    P01[20*i] <- tbl[3]/(tbl[1] + tbl[3])
+    
+    P00[20*i] <- tbl[1]/(tbl[1] + tbl[3])
+    
+    cutoff[20*i] <- i
+    msclaf.cost[20*i] <- P10[20*i]*costs[2] + P01[20*i]*costs[3]
+    youden.index[20*i] <- P11[20*i] + P00[20*i] - 1
+  }
+}
+df.cost.table <- cbind(cutoff,P10,P01,msclaf.cost, P11, P00, youden.index)
+```
+
+The table summarizing the optimal cut-off value:
+
+_write the cost.table into a csv file_
+```{r modelOptimalCutoffTable, echo=FALSE}
+df.cost.table
+#Missing Code
+```
+
+
+### 3. Confusion Matrix on the test data
+
+The **predict** function is used to get the predicted probability on the new dataset. The probability value along with the optimal cut-off can be used to build confusion matrix
+
+```{r modelValidation, echo=FALSE,tidy=TRUE}
+lgGlmTestPredictedProbability = predict(lgGlmModelStepwise, lg.test.data, type = "response")
+
+#variable with all the values as joined
+n <- length(lg.test.data$Status)
+predicted.y = rep("Joined", n)
+
+# defining log odds in favor of not joining
+predicted.y[lgGlmTestPredictedProbability > 0.40] = "Not Joined"
+
+#add the model_precition in the data
+lg.test.data$predicted.y <- predicted.y
+
+###Create the confusionmatrix###
+addmargins(table(lg.test.data$Status, lg.test.data$predicted.y))
+mean(lg.test.data$predicted.y == lg.test.data$Status)
+```
+
+
+### 4. ROC Plot on the test data
+
+ROCR package can be used to evaluate the model performace on the test data. The same package can also be used to get the model performace on the test data.
+
+```{r validationROC, echo=FALSE,tidy=TRUE}
+lgPredObj <- prediction(lgGlmTestPredictedProbability,lg.test.data$Status)
+lgPerfObj <- performance(lgPredObj, "tpr","fpr")
+plot(lgPerfObj,main = "ROC Curve",col = 2,lwd = 2)
+abline(a = 0,b = 1,lwd = 2,lty = 3,col = "black")
+performance(lgPredObj, "auc")
+```
+
+
+#### End of Document
+
+***
+***

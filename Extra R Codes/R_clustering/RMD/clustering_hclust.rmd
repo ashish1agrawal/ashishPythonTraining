@@ -1,0 +1,44 @@
+---
+author: Kumar Rahul
+date: 6/9/2017
+output: word_document
+title: Hierarchical Clustering
+---
+
+```{r echo=FALSE, message=FALSE}
+library(stats) # for kmeans  and hclust
+```
+
+## Preparing Data
+
+Read data from a specified location
+
+```{r}
+beerdata <- read.csv("/Users/Rahul/Documents/Datasets/Hclust_Beer data.csv", header = TRUE,sep = ",",na.strings = c(""," ", "NA"))
+```
+
+##Summary of the data on which model is built and Standardizing the variables
+
+```{r}
+str(beerdata)
+beerdata <- na.omit(beerdata)
+c <- scale(beerdata[,3:6])
+```
+
+##Using euclidean as distance measure for hirerchial clustering
+
+```{r}
+d <- dist(c, method = "euclidean") # distance matrix
+hclust_result <- hclust(d, method="complete")
+hclust_result$labels <- beerdata[,2] #add beer names as labels
+```
+
+##Plot using dendrogram plot to visulaize the clusters
+
+```{r}
+plot(hclust_result)
+# cut tree into 5 clusters
+groups <- cutree(hclust_result, k=5)
+# draw dendrogram with red borders around the 5 clusters
+rect.hclust(hclust_result, k=5, border="red")
+```

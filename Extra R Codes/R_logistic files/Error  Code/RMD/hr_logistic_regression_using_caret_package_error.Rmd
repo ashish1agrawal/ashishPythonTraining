@@ -1,0 +1,299 @@
+---
+title: "Logistic Regression Using Caret Package"
+author: "Kumar Rahul"
+date: "12 September 2016"
+output: word_document
+---
+
+## In this exercise, we will use the HR dataset and understand the following using caret package:
+
+> 1. Building the logistic regression model
+2. What is marked as the positive class by the model when using caret package
+3. Writing the model equation and interpreting the model summary
+4. Creating the Confusion Matrix and ROC plot on train data
+5. Using mis-classification cost as a criteria to select the best cut-off
+6. Using Younden Index as the criteria to select the best cut-off
+7. Creating the Confusion Matrix and ROC plot on test data
+8. Compare and discuss the result of logistic regression using caret vis-a-via stats package
+9. Changing the base or reference category and evaluate the impact on the model (This is self work/assignment)
+10. Change the cut-off value for train data in caret package (This is self work/assignment)
+
+There are bugs/missing code in the entire exercise. The participants are expected to work upon them.
+***
+***
+
+## Here are some useful links:
+
+> 1. **[Read](http://www.ats.ucla.edu/stat/mult_pkg/faq/general/dummy.htm)** about interaction variable coding
+2. Refer **[link](http://www.statmethods.net/input/valuelabels.html)** to know about adding lables to factors
+3. Refer **[link](http://stackoverflow.com/questions/2342472/recode-relevel-data-frame-factors-with-different-levels)** to relvel factor variables
+4. **[Read](http://stats.stackexchange.com/questions/88485/variable-is-significant-through-stepwise-regression-but-not-in-final-models-sum)** about the issues in stepwise regression
+5. **[Read](http://topepo.github.io/caret/training.html)** about the modelling activity via caret package
+6. The **[complete](http://topepo.github.io/caret/modelList.html)** list of tuning parameter for different models in caret package
+
+
+***
+
+# Code starts here
+We are going to use below mentioned libraries for demonstrating logistic regression:
+
+```{r libraries, echo=TRUE, message=FALSE, warning=FALSE}
+library(caret)    #for data partition. Model building
+library(ROCR)     #for ROC plot (other way)
+```
+
+## Data Import and Manipulation
+
+### 1. Importing a data set 
+
+_Give the correct path to the data_
+```{r readData, echo=TRUE,tidy=TRUE}
+raw.data <- read.csv("/Users/Rahul/Documents/Datasets/HR_data.csv", header = TRUE,sep = ",",na.strings = c(""," ", "NA"))
+```
+
+Note that `echo = FALSE` parameter prevents printing the R code that generated the
+plot.
+
+### 2. Structure and Summary of the dataset
+
+```{r summarizeData, echo=TRUE,tidy=TRUE}
+str(raw.data)
+summary(raw.data)
+```
+
+
+Create a new data frame and store the raw data copy. This is being done to have a copy of the raw data intact for further manipulation if needed.
+
+```{r createDataCopy, echo=TRUE,tidy=TRUE}
+filter.data <- na.omit(raw.data) # listwise deletion of missing
+```
+
+### 3. Create train and test dataset
+
+#### Reserve 80% for **_training_** and 20% of **_test_**
+
+_Correct the error in the below code chunk_
+```{r createDataPartition, echo=TRUE,tidy=TRUE}
+set.seed(2341)
+trainIndex <- createDataPartition(filter.data$Status, p = 0.20, list = FALSE)
+data.train <- filter.data[trainIndex,]
+data.test <- filter.data[trainIndex,]
+```
+
+We can pull the specific attribute needed to build the model is another data frame. This agian is more of a hygine practice to not touch the **train** and **test** data set directly. 
+
+_Correct the error in the below code chunk_
+```{r variableUsedinTraining, echo=TRUE,tidy=TRUE}
+lg.train.data <- as.data.frame(data.train[,c("DOJ.Extended",
+                                             "Duration.to.accept.offer",
+                                             "Notice.period",
+                                             "Offered.band",
+                                             "Percent.difference",
+                                             "Joining.Bonus",
+                                             "Gender",
+                                             "Candidate.Source", 
+                                             "Rex.in.Yrs",
+                                             "LOB", 
+                                             "Locationoffered",
+                                             "Age",
+                                             "Status"
+)])
+```
+
+_Correct the error in the below code chunk_
+```{r variableUsedinTesting, echo=TRUE, tidy=TRUE}
+lg.test.data <- as.data.frame(data.test[,c("DOJ.Extended",
+                                           "Duration.to.accept.offer",
+                                           "Notice.period",
+                                           "Offered.band",
+                                           "Percent.difference",
+                                           "Joining.Bonus",
+                                           "Gender",
+                                           "Candidate.Source", 
+                                           "Rex.in.Yrs",
+                                           "LOB", 
+                                           "Locationoffered",
+                                           "Age",
+                                           "Status"
+)])
+```
+
+***
+
+## Model Building: Using the **caret()** package
+There are a number of models which can be built using caret package. To get the names of all the models possible.
+
+```{r caretModelInfo, echo=TRUE}
+names(getModelInfo())
+```
+
+To get the info on specific model:
+
+```{r caretModelType, echo=TRUE}
+getModelInfo()$glmnet$type
+```
+
+The below chunk of code is standarized way of building model using caret package. Setting in the control parameters for the model.
+
+```{r caretControl, echo=TRUE}
+objControl <- trainControl(method = "cv", number = 2, returnResamp = 'final', 
+                           summaryFunction = twoClassSummary, 
+                           #summaryFunction = twoClassSummary, defaultSummary
+                           classProbs = TRUE,
+                           savePredictions = TRUE)
+```
+
+The search grid is basically a model fine tuning option. The paramter inside the **expand.grid()** function varies according to model. The **[complete](http://topepo.github.io/caret/modelList.html)** list of tuning paramter for different models.
+
+```{r caretTune, echo=TRUE}
+#Need not be executed if method  is glmStepAIC
+```
+
+The model building starts here. 
+> 1. **metric= "ROC"** uses ROC curve to select the best model.Accuracy, Kappa are other options. To use this change twoClassSummary to defaultSummary in **ObjControl**
+2. **verbose = FALSE**: does not show the processing output on console
+
+The factor names at times may not be consistent. R may expect **"Not.Joined"** but the actual level may be **"Not Joined"** This is corrected by using **make.names()** function to give syntactically valid names. 
+
+```{r caretModel, echo=TRUE, message=FALSE, warning=FALSE}
+#lg.train.data$StatusFactor <- as.factor(ifelse(lg.train.data$Status == "Joined", 1,0))
+set.seed(766)
+levels(lg.train.data$Status) <- make.names(levels(factor(lg.train.data$Status)))
+lgCaretModel <- train(lg.train.data[,1:12],
+                      lg.train.data[,13], 
+                      method = 'glmStepAIC',
+                      trControl = objControl,
+                      metric = "ROC",
+                      verbose = FALSE)
+#tuneGrid = searchGrid)
+```
+
+
+## Model Evaluation
+
+### 1. One useful plot from caret package is the variable importance plot
+
+```{r caretVarImp, echo=TRUE}
+summary(lgCaretModel)
+plot(varImp(lgCaretModel, scale = TRUE))
+```
+
+
+### 2. The prediction and confusion Matrix on train data.
+
+The syntax for prediction in caret is almost similar expect the the **type** attribute expects input as **'raw'** or **'prob'**. In case of prob, the predicted value holds the probability of both positive and negative class.
+
+```{r caretPrediction, echo=TRUE}
+#Missing code. May result in error
+caretPredictedClass <- predict(object = lgCaretModel, lg.train.data[,1:12], type = 'raw')
+confusionMatrix(caretPredictedClass,lg.train.data$Status)
+```
+
+### 3. The optimal cut-off
+
+```{r variableDeclaration, include=FALSE}
+#creating empty vectors to store the results. 
+msclaf.cost <- c()
+youden.index <- c()
+cutoff <- c()
+P11 <- c() #correct classification of positive as positive
+P00 <- c() #correct classification of negative as negative
+P10 <- c() #misclassification of positive class to negative class
+P01 <- c() #misclassification of negative class to positive class
+```
+
+####Select the optimal cut-off value, if:
+
+> 1. cost of misclassifying Not Joined as Joined is twice as costly as cost of
+micalssifying Joined as Not Joined
+2. both sensitivity and specificity are equally important
+
+The best cut-off is the one which minimizes the misclassification cost (in case of **_option 1_**) or which maximizes the Youden's Index (in case of **_Option 2_**).
+
+_fix the bug here_: clue is in the above **two options**
+```{r modelOptimalCutOff, echo=FALSE,tidy=TRUE}
+lgCaretTrainPredictedProbability = predict(object = lgCaretModel, lg.train.data[,1:12], type = 'prob')
+#variable with all the values as joined
+n <- length(lg.train.data$Status)
+
+costs = matrix(c(0,2,1, 0), ncol = 2)
+colnames(costs) = rownames(costs) = c("Joined", "Non Joined")
+as.table(costs)
+```
+
+The misclassification cost table is:
+
+```{r costCal, echo=TRUE, tidy=TRUE}
+# defining log odds in favor of Joined
+for (i in seq(0.05, 1, .05)) {
+  predicted.y = rep("Not Joined", n)
+  predicted.y[lgCaretTrainPredictedProbability[1] > i] = "Joined"
+  tbl <- table(lg.train.data$Status, predicted.y)
+  if ( i <= 1) {
+    #Classifying Not Joined as Joined
+    P10[20*i] <- tbl[2]/(tbl[2] + tbl[4])
+    
+    P11[20*i] <- tbl[4]/(tbl[2] + tbl[4])
+    
+    #Classifying Joined as Not Joined
+    P01[20*i] <- tbl[3]/(tbl[1] + tbl[3])
+    
+    P00[20*i] <- tbl[1]/(tbl[1] + tbl[3])
+    
+    cutoff[20*i] <- i
+    msclaf.cost[20*i] <- P10[20*i]*costs[2] + P01[20*i]*costs[3]
+    youden.index[20*i] <- P11[20*i] + P00[20*i] - 1
+  }
+}
+df.cost.table <- cbind(cutoff,P10,P01,msclaf.cost, P11, P00, youden.index)
+```
+
+The table summarizing the optimal cut-off value:
+
+_write the cost.table into a csv file_
+```{r modelOptimalCutoffTable, echo=FALSE}
+df.cost.table
+#Missing code
+```
+
+### 3. Confusion Matrix on the test data
+
+The **predict** function is used to get the predicted probability on the new dataset. The probability value along with the optimal cut-off can be used to build confusion matrix
+
+```{r modelValidation, echo=FALSE,tidy=TRUE}
+lgCaretTestPredictedProbability = predict(lgCaretModel, lg.test.data, type = "prob")
+
+#variable with all the values as joined
+n <- length(lg.test.data$Status)
+predicted.y = rep("Not Joined", n)
+
+# defining log odds in favor of not joining
+predicted.y[lgCaretTestPredictedProbability[1] > 0.60] = "Joined"
+
+#add the model_precition in the data
+lg.test.data$predicted.y <- predicted.y
+
+###Create the confusionmatrix###
+addmargins(table(lg.test.data$Status, lg.test.data$predicted.y))
+mean(lg.test.data$predicted.y == lg.test.data$Status)
+```
+
+
+### 4. ROC Plot on the test data
+
+ROCR package can be used to evaluate the model performace on the test data. The same package can also be used to get the model performace on the test data.
+
+```{r validationROC, echo=FALSE,tidy=TRUE}
+#Missing code. May result in error.
+lgPredObj <- prediction(lgCaretTestPredictedProbability[2],lg.test.data$Status)
+lgPerfObj <- performance(lgPredObj, "tpr","fpr")
+plot(lgPerfObj,main = "ROC Curve",col = 2,lwd = 2)
+abline(a = 0,b = 1,lwd = 2,lty = 3,col = "black")
+performance(lgPredObj, "auc")
+```
+
+
+#### End of Document
+
+***
+***
