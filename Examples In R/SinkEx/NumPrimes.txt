@@ -1,0 +1,24 @@
+The mean of the first 10 primes is 12.9 
+The SD of primes is 
+ 9.02Correlation of nums vs primes is 
+ 0.99
+Call:
+lm(formula = primes ~ nums)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-1.4909 -1.0742 -0.3697  0.2439  2.8727 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  -3.2667     1.0827  -3.017   0.0166 *  
+nums          2.9394     0.1745  16.845 1.56e-07 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 1.585 on 8 degrees of freedom
+Multiple R-squared:  0.9726,	Adjusted R-squared:  0.9692 
+F-statistic: 283.7 on 1 and 8 DF,  p-value: 1.563e-07
+
+[1] -0.008870452
+[1] 0.9708846
